@@ -16,17 +16,17 @@ export default function ForgotPassword({ setMode }) {
                     id="phone"
                     pattern="[0-9]{10}"
                     placeholder=" "
-                    className="peer w-full border border-gray-500 rounded-md px-3 py-2 bg-transparent focus:border-gray-500 focus:outline-none "
+                    className="peer w-full focus:shadow-md border border-gray-500 rounded-md px-3 py-2 bg-transparent focus:border-gray-500 focus:outline-none "
                 />
                 <label
                     htmlFor="phone"
-                    className="absolute left-3 top-2
+                    className="absolute left-3 -top-3.5
                     bg-gray-200 px-1
-                    text-gray-500 text-sm
+                    text-gray-500 text-md
                     transition-all 
-                    peer-placeholder-shown:top-2
                     peer-placeholder-shown:text-base
                     peer-placeholder-shown:text-gray-400
+                    peer-placeholder-shown:top-2
                     peer-focus:-top-3.5
                     peer-focus:text-md
                     peer-focus:text-gray-500
@@ -42,17 +42,17 @@ export default function ForgotPassword({ setMode }) {
                     type="password"
                     id="newPassword"
                     placeholder=" "
-                    className="peer w-full border border-gray-500 rounded-md px-3 py-2 bg-transparent focus:border-gray-500 focus:outline-none "
+                    className="peer w-full focus:shadow-md border border-gray-500 rounded-md px-3 py-2 bg-transparent focus:border-gray-500 focus:outline-none "
                 />
                 <label
                     htmlFor="newPassword"
-                    className="absolute left-3 top-2
+                    className="absolute left-3 -top-3.5
                     bg-gray-200 px-1
-                    text-gray-500 text-sm
+                    text-gray-500 text-md
                     transition-all 
-                    peer-placeholder-shown:top-2
                     peer-placeholder-shown:text-base
                     peer-placeholder-shown:text-gray-400
+                    peer-placeholder-shown:top-2
                     peer-focus:-top-3.5
                     peer-focus:text-md
                     peer-focus:text-gray-500
@@ -67,17 +67,17 @@ export default function ForgotPassword({ setMode }) {
                     type="password"
                     id="confirmPassword"
                     placeholder=" "
-                    className="peer w-full border border-gray-500 rounded-md px-3 py-2 bg-transparent focus:border-gray-500 focus:outline-none "
+                    className="peer w-full focus:shadow-md border border-gray-500 rounded-md px-3 py-2 bg-transparent focus:border-gray-500 focus:outline-none "
                 />
                 <label
                     htmlFor="confirmPassword"
-                    className="absolute left-3 top-2
+                    className="absolute left-3 -top-3.5
                     bg-gray-200 px-1
-                    text-gray-500 text-sm
+                    text-gray-500 text-md
                     transition-all 
-                    peer-placeholder-shown:top-2
                     peer-placeholder-shown:text-base
                     peer-placeholder-shown:text-gray-400
+                    peer-placeholder-shown:top-2
                     peer-focus:-top-3.5
                     peer-focus:text-md
                     peer-focus:text-gray-500
@@ -86,13 +86,30 @@ export default function ForgotPassword({ setMode }) {
                     Confirm Password
                 </label>
             </div>
-            
-            <button
+
+            {/* <button
                 type="submit"
                 className="w-full bg-gray-600 hover:bg-gray-400 text-white py-2 rounded-lg font-semibold transition duration-200"
             >
                 Reset Password
+            </button> */}
+
+            <button
+                className="relative w-full py-2 hover:bg-slate-500 font-semibold rounded-lg text-white tracking-widest text-lg overflow-hidden bg-gray-700 shadow-md group"
+                type="submit"
+            >
+                Reset Password
+
+                <span className="absolute top-0 left-0 h-[2px] w-0 bg-white transition-all duration-500 group-hover:w-full group-hover:translate-x-full"></span>
+
+                <span className="absolute top-0 left-0 w-[2px] h-0 bg-white transition-all duration-500 group-hover:h-full group-hover:translate-y-full"></span>
+
+                <span className="absolute bottom-0 right-0 h-[2px] w-0 bg-white transition-all duration-500 group-hover:w-full group-hover:-translate-x-full"></span>
+
+                <span className="absolute bottom-0 right-0 w-[2px] h-0 bg-white transition-all duration-500                                                                                       group-hover:h-full group-hover:-translate-y-full"></span>
+
             </button>
+
             <p className="mt-4 text-sm text-center text-gray-600 font-bold">
                 Remember your password?{" "}
                 <button
