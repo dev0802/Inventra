@@ -1,8 +1,31 @@
-import React from 'react'
+import React, { useState } from 'react'
 
 export default function ForgotPassword({ setMode }) {
+    const [phone, setPhone] = useState("");
+    const [newPassword, setNewPassword] = useState("");
+    const [confirmPassword, setConfirmPassword] = useState("");
+
+    const handleSubmit = (e) => {
+        e.preventDefault();
+        fetch("http://localhost:5000/api/auth/reset-password", {
+            method: "PUT",
+            headers: {
+                "Content-Type": "application/json",
+            },
+            body: JSON.stringify({ phone_number: phone, new_password: newPassword }),
+        });
+    };
+
+    if (newPassword !== confirmPassword) {
+        return (
+            <div className="text-center text-red-500 font-bold">
+                Passwords do not match
+            </div>
+        );
+    }
+
     return (
-        <form>
+        <form onSubmit={handleSubmit}>
             {/* Heading */}
             <div className="text-center lg:text-left mb-6">
                 <h2 className="text-2xl text-gray-800 font-bold text-center">
@@ -16,6 +39,8 @@ export default function ForgotPassword({ setMode }) {
                     id="phone"
                     pattern="[0-9]{10}"
                     placeholder=" "
+                    value={phone}
+                    onChange={(e) => setPhone(e.target.value)}
                     className="peer w-full focus:shadow-md border border-gray-500 rounded-md px-3 py-2 bg-transparent focus:border-gray-500 focus:outline-none "
                 />
                 <label
@@ -42,6 +67,8 @@ export default function ForgotPassword({ setMode }) {
                     type="password"
                     id="newPassword"
                     placeholder=" "
+                    value={newPassword}
+                    onChange={(e) => setNewPassword(e.target.value)}
                     className="peer w-full focus:shadow-md border border-gray-500 rounded-md px-3 py-2 bg-transparent focus:border-gray-500 focus:outline-none "
                 />
                 <label
@@ -67,6 +94,8 @@ export default function ForgotPassword({ setMode }) {
                     type="password"
                     id="confirmPassword"
                     placeholder=" "
+                    value={confirmPassword}
+                    onChange={(e) => setConfirmPassword(e.target.value)}
                     className="peer w-full focus:shadow-md border border-gray-500 rounded-md px-3 py-2 bg-transparent focus:border-gray-500 focus:outline-none "
                 />
                 <label

@@ -1,8 +1,45 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
 
 export default function LoginPage({ setMode, setIsLoggedIn }) {
+  const [phone, setPhone] = useState("");
+  const [password, setPassword] = useState("");
+
+  // useEffect(() => {
+  //   fetch("http://localhost:5000/api/auth/login", {
+  //     method: "POST",
+  //     headers: {
+  //       "Content-Type": "application/json",
+  //     },
+  //     body: JSON.stringify({ phone_number: phone, password: password }),
+  //   })
+  //     .then((response) => response.json())
+  //     .then((data) => {
+  //       if (data.message === "Login successful") {
+  //         setIsLoggedIn(true);
+  //       }
+  //     });
+  // }, [phone, password]);
+
+  const handleSubmit = (e) => {
+    e.preventDefault();
+    fetch("http://localhost:5000/api/auth/login", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ phone_number: phone, password: password }),
+    })
+      .then((response) => response.json())
+      .then((data) => {
+        if (data.message === "Login successful") {
+          setIsLoggedIn(true);
+        }
+      });
+  };
+
+
   return (
-    <form>
+    <form onSubmit={handleSubmit}>
       {/* Heading */}
       <div className="text-center lg:text-left mb-6">
         <h2 className="text-2xl text-gray-800 font-bold text-center">
@@ -19,6 +56,8 @@ export default function LoginPage({ setMode, setIsLoggedIn }) {
           inputMode="numeric"
           id="phone"
           placeholder=" "
+          value={phone}
+          onChange={(e) => setPhone(e.target.value)}
           className="peer w-full focus:shadow-md border border-gray-500 rounded-md px-3 py-2 bg-transparent focus:border-gray-500 focus:outline-none "
         />
         <label
@@ -45,6 +84,8 @@ export default function LoginPage({ setMode, setIsLoggedIn }) {
           type="password"
           id="password"
           placeholder=" "
+          value={password}
+          onChange={(e) => setPassword(e.target.value)}
           className="peer w-full focus:shadow-md border border-gray-500 rounded-md px-3 py-2 bg-transparent focus:border-gray-500 focus:outline-none "
         />
         <label
@@ -76,18 +117,10 @@ export default function LoginPage({ setMode, setIsLoggedIn }) {
         </button>
       </div>
 
-      {/* Login Button */}
-      {/* <button
-        type="submit"
-        className="w-full bg-gray-600   text-white py-2 rounded-lg font-semibold transition duration-200 "
-        onClick={() => setIsLoggedIn(true)}
-      >
-        Sign In
-      </button> */}
       <button
         className="relative w-full py-2 hover:bg-slate-500 font-semibold rounded-lg text-white tracking-widest text-lg overflow-hidden bg-gray-700 shadow-md group"
         type="submit"
-        onClick={() => setIsLoggedIn(true)}
+
       >
         Sign In
 
