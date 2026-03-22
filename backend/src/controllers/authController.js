@@ -22,6 +22,29 @@ exports.login = async (req, res) => {
     }
 };
 
+exports.checkPhoneNumber = async (req, res) => {
+    const { phone_number } = req.body;
+    try {
+        const result = await authService.checkPhoneNumber(phone_number);
+        res.status(200).json(result);
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ error: 'User not found' });
+    }
+};
+
+exports.checkPassword = async (req, res) => {
+    const { phone_number, password } = req.body;
+    try {
+        const result = await authService.checkPassword(phone_number, password);
+        res.status(200).json(result);
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ error: 'Password is incorrect' });
+    }
+};
+
+
 exports.resetPassword = async (req, res) => {
     const { phone_number, new_password } = req.body;
     try {
