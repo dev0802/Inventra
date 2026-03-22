@@ -9,6 +9,7 @@ export default function ForgotPassword({ setMode }) {
     const [newPasswordError, setNewPasswordError] = useState("");
     const [confirmPasswordError, setConfirmPasswordError] = useState("");
     const [showPassword, setShowPassword] = useState(false);
+    const [phoneStatus, setPhoneStatus] = useState("");
 
     const showPasswordToggle = () => {
         setShowPassword(!showPassword);
@@ -24,13 +25,29 @@ export default function ForgotPassword({ setMode }) {
         if (value.length >= 10) {
             value = value.slice(0, 10);
         }
-        setPhone(value);
 
         if (value.length < 10) {
             setPhoneError("Phone number must be 10 digits long");
         } else {
             setPhoneError("");
         }
+        setPhone(value);
+        // Check if phone number exists in the database
+        fetch("http://localhost:5000/api/auth/check-phone", {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+            },
+            body: JSON.stringify({ phone_number: value }),
+        })
+            .then((response) => response.json())
+            .then((data) => {
+                if (data.exists) {
+                    setPhoneStatus("Phone number exists");
+                } else {
+                    setPhoneStatus("Phone number does not exist");
+                }
+            });
     };
 
     const passwordValidation = (e) => {
@@ -40,8 +57,8 @@ export default function ForgotPassword({ setMode }) {
         value = value.slice(0, 12);
 
         const strongPassword =
-        /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&]).{8,12}$/;
-        
+            /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&]).{8,12}$/;
+
         // Validation
         if (value.length === 0) {
             setNewPasswordError("");
@@ -55,7 +72,7 @@ export default function ForgotPassword({ setMode }) {
             setNewPasswordError("");
         }
         setNewPassword(value);
-    };  
+    };
 
     const confirmPasswordValidation = (e) => {
         let value = e.target.value;
@@ -81,16 +98,16 @@ export default function ForgotPassword({ setMode }) {
             },
             body: JSON.stringify({ phone_number: phone, new_password: newPassword }),
         })
-        .then((response) => response.json())
-        .then((data) => {
-            if (data.message === "Password reset successful") {
-                alert(data.message);
-                setMode("Sign In");
-            }
-            else{
-                alert("Error resetting password");
-            }
-        });
+            .then((response) => response.json())
+            .then((data) => {
+                if (data.message === "Password reset successful") {
+                    alert(data.message);
+                    setMode("Sign In");
+                }
+                else {
+                    alert("Error resetting password");
+                }
+            });
     };
 
     return (
@@ -110,8 +127,14 @@ export default function ForgotPassword({ setMode }) {
                     placeholder=" "
                     value={phone}
                     onChange={phoneValidation}
-                    className="peer w-full focus:shadow-md border border-gray-500 rounded-md px-3 py-2 bg-transparent focus:border-gray-500 focus:outline-none "
-                />
+                    className={`peer w-full focus:shadow-md border border-gray-500 rounded-md px-3 py-2 bg-transparent focus:border-gray-500 focus:outline-none " +
+                    ${phoneStatus === "Phone number exists"
+                            ? "border-gray-500 shadow-sm shadow-green-300"
+                            : phoneStatus === "Phone number does not exist"
+                                ? "border-gray-500 shadow-sm shadow-red-300"
+                                : "border-gray-500 focus:border-gray-500"
+                        }
+                    `} />
                 <label
                     htmlFor="phone"
                     className="absolute left-3 -top-3.5
