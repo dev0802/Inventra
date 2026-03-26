@@ -1,12 +1,11 @@
 import React, { useState } from 'react'
 import { AiFillEye, AiFillEyeInvisible } from "react-icons/ai";
+import { resetPassword } from '../../services/api/auth/authApi';
 export default function ForgotPassword({ setMode }) {
     const [phone, setPhone] = useState("");
     const [newPassword, setNewPassword] = useState("");
     const [confirmPassword, setConfirmPassword] = useState("");
-    const [phoneerror, setPhoneError] = useState("");
-    // const [passworderror, setPasswordError] = useState("");
-    const [newPasswordError, setNewPasswordError] = useState("");
+    const [newPasswordStatus, setNewPasswordStatus] = useState("");
     const [confirmPasswordError, setConfirmPasswordError] = useState("");
     const [showPassword, setShowPassword] = useState(false);
     const [phoneStatus, setPhoneStatus] = useState("");
@@ -21,93 +20,55 @@ export default function ForgotPassword({ setMode }) {
         // Remove non-digit characters
         value = value.replace(/\D/g, "");
 
-        // Limit to 10 digits
-        if (value.length >= 10) {
-            value = value.slice(0, 10);
-        }
-
-        if (value.length < 10) {
-            setPhoneError("Phone number must be 10 digits long");
+        if (value.length !== 10) {
+            setPhoneStatus("Phone number must be 10 digits long");
         } else {
-            setPhoneError("");
+            setPhoneStatus("");
         }
         setPhone(value);
-        // Check if phone number exists in the database
-        fetch("http://localhost:5000/api/auth/check-phone", {
-            method: "POST",
-            headers: {
-                "Content-Type": "application/json",
-            },
-            body: JSON.stringify({ phone_number: value }),
-        })
-            .then((response) => response.json())
-            .then((data) => {
-                if (data.exists) {
-                    setPhoneStatus("Phone number exists");
-                } else {
-                    setPhoneStatus("Phone number does not exist");
-                }
-            });
+
     };
 
-    const passwordValidation = (e) => {
-        let value = e.target.value;
+    const newPasswordValidation = (e) => {
+        let newPasswordValue = e.target.value;
 
-        // Limit to 12 characters
-        value = value.slice(0, 12);
-
-        const strongPassword =
-            /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&]).{8,12}$/;
+        // Password greater than or equal to 6 characters
+        const passwordLength = /^.{6,}$/;
 
         // Validation
-        if (value.length === 0) {
-            setNewPasswordError("");
+        if (!passwordLength.test(newPasswordValue)) {
+            setNewPasswordStatus("Password  must be 6 characters long");
         }
-        else if (!strongPassword.test(value)) {
-            setNewPasswordError(
-                "Password must be a combination of [a-z], [A-Z], [0-9] and [@$!%*?&] and must be 8-12 characters long"
-            );
+        else{
+            setNewPasswordStatus("")
         }
-        else {
-            setNewPasswordError("");
-        }
-        setNewPassword(value);
+        setNewPassword(newPasswordValue);
+
     };
 
     const confirmPasswordValidation = (e) => {
         let value = e.target.value;
 
-        // Limit to 12 characters
-        value = value.slice(0, 12);
-
         if (value !== newPassword) {
             setConfirmPasswordError("Passwords do not match");
         } else {
-            setConfirmPasswordError("");
+            setConfirmPasswordError("Passwords match");
         }
         setConfirmPassword(value);
     };
 
-
-    const handleSubmit = (e) => {
+    const handleSubmit = async (e) => {
         e.preventDefault();
-        fetch("http://localhost:5000/api/auth/reset-password", {
-            method: "PUT",
-            headers: {
-                "Content-Type": "application/json",
-            },
-            body: JSON.stringify({ phone_number: phone, new_password: newPassword }),
-        })
-            .then((response) => response.json())
-            .then((data) => {
-                if (data.message === "Password reset successful") {
-                    alert(data.message);
-                    setMode("Sign In");
-                }
-                else {
-                    alert("Error resetting password");
-                }
-            });
+
+        const reset = await resetPassword(phone, newPassword);
+
+        if (reset.message === "User not found") {
+            setPhoneStatus("User not found");
+        }
+        else if (reset.message === "Password reset successfull") {
+            setMode("Sign In");
+            alert("Password reset successfull");
+        }
     };
 
     return (
@@ -119,7 +80,7 @@ export default function ForgotPassword({ setMode }) {
                 </h2>
             </div>
             {/* Phone Number */}
-            <div className="relative mb-4">
+            <div className="relative mb-5">
                 <input
                     type="text"
                     id="phone"
@@ -128,11 +89,9 @@ export default function ForgotPassword({ setMode }) {
                     value={phone}
                     onChange={phoneValidation}
                     className={`peer w-full focus:shadow-md border border-gray-500 rounded-md px-3 py-2 bg-transparent focus:border-gray-500 focus:outline-none " +
-                    ${phoneStatus === "Phone number exists"
-                            ? "border-gray-500 shadow-sm shadow-green-300"
-                            : phoneStatus === "Phone number does not exist"
-                                ? "border-gray-500 shadow-sm shadow-red-300"
-                                : "border-gray-500 focus:border-gray-500"
+                    ${phoneStatus === "User not found" || phoneStatus === "Phone number must be 10 digits long"
+                            ? "border-gray-500 shadow-sm shadow-red-500"
+                            : ""
                         }
                     `} />
                 <label
@@ -151,20 +110,27 @@ export default function ForgotPassword({ setMode }) {
                 >
                     Phone Number
                 </label>
-                {phoneerror && (
-                    <p className="text-gray-700 text-sm mt-2 text-center">{phoneerror}</p>
+                {phoneStatus && (
+                    <p className='className="text-gray-700 text-sm mt-2 text-center'>{phoneStatus}</p>
                 )}
             </div>
 
             {/* New Password */}
-            <div className="relative mb-4">
+            <div className="relative mb-5">
                 <input
                     type={showPassword ? "text" : "password"}
                     id="newPassword"
                     placeholder=" "
                     value={newPassword}
-                    onChange={passwordValidation}
-                    className="peer w-full focus:shadow-md border border-gray-500 rounded-md px-3 py-2 bg-transparent focus:border-gray-500 focus:outline-none "
+                    onChange={newPasswordValidation}
+                    className={`peer w-full focus:shadow-md border border-gray-500 rounded-md px-3 py-2 bg-transparent focus:border-gray-500 focus:outline-none
+                        ${newPasswordStatus === "Password must be 6 characters long"
+                            ? "border-gray-500 shadow-sm shadow-red-500"
+                            : "border-gray-500 shadow-sm shadow-green-500"
+                            
+                        }
+                    
+                        `}
                 />
                 <label
                     htmlFor="newPassword"
@@ -182,22 +148,29 @@ export default function ForgotPassword({ setMode }) {
                 >
                     New Password
                 </label>
-                {newPasswordError && (
-                    <p className="text-gray-700 text-sm mt-2 text-center">{newPasswordError}</p>
+                {newPasswordStatus && (
+                    <p className="text-gray-700 text-sm mt-2 text-center">{newPasswordStatus}</p>
                 )}
                 <div className='absolute right-3 top-3 text-gray-700 cursor-pointer text-xl'>
                     {showPassword ? <AiFillEyeInvisible onClick={showPasswordToggle} /> : <AiFillEye onClick={showPasswordToggle} />}
                 </div>
             </div>
             {/* Confirm Password */}
-            <div className="relative mb-4">
+            <div className="relative mb-5">
                 <input
                     type={showPassword ? "text" : "password"}
                     id="confirmPassword"
                     placeholder=" "
                     value={confirmPassword}
                     onChange={confirmPasswordValidation}
-                    className="peer w-full focus:shadow-md border border-gray-500 rounded-md px-3 py-2 bg-transparent focus:border-gray-500 focus:outline-none "
+                    className={`peer w-full focus:shadow-md border border-gray-500 rounded-md px-3 py-2 bg-transparent focus:border-gray-500 focus:outline-none
+                        ${confirmPasswordError === "Passwords match"
+                            ? "border-gray-500 shadow-sm shadow-green-500"
+                            : confirmPasswordError === "Passwords do not match"
+                                ? "border-gray-500 shadow-sm shadow-red-500"
+                                : "border-gray-500 focus:border-gray-500"
+                        }
+                        `}
                 />
                 <label
                     htmlFor="confirmPassword"

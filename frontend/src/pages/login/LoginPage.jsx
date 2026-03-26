@@ -1,17 +1,17 @@
-import React, {useState } from "react";
-import {AiFillEye, AiFillEyeInvisible} from "react-icons/ai";
+import React, { useState } from "react";
+import { AiFillEye, AiFillEyeInvisible } from "react-icons/ai";
 import { useNavigate } from "react-router-dom";
+import { logIn } from "../../services/api/auth/authApi";
 export default function LoginPage({ setMode, setIsLoggedIn }) {
   const [phone, setPhone] = useState("");
   const [password, setPassword] = useState("");
   const [phoneerror, setPhoneError] = useState("");
   const [passworderror, setPasswordError] = useState("");
-  const [loginError, setLoginError] = useState("");
+  const [loginStatus, setLoginStatus] = useState("");
   const [showPassword, setShowPassword] = useState(false);
-  const [phoneStatus, setPhoneStatus] = useState("");
-  const [passwordStatus, setPasswordStatus] = useState("");
 
   const navigate = useNavigate();
+
   const showPasswordToggle = () => {
     setShowPassword(!showPassword);
   };
@@ -22,108 +22,80 @@ export default function LoginPage({ setMode, setIsLoggedIn }) {
     // Remove non-digit characters
     value = value.replace(/\D/g, "");
 
-    // Limit to 10 digits
-    if (value.length >= 10) {
-      value = value.slice(0, 10);
-    }
-    
-    if (value.length < 10) {
+    if (value.length !== 10) {
       setPhoneError("Phone number must be 10 digits long");
     } else {
       setPhoneError("");
     }
     setPhone(value);
-
-    // Check if phone number exists in the database
-    fetch("http://localhost:5000/api/auth/check-phone", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({ phone_number: value }),
-    })
-      .then((response) => response.json())
-      .then((data) => {
-        if (data.exists) {
-          setPhoneStatus("Phone number exists");
-        } else {
-          setPhoneStatus("Phone number does not exist");
-        }
-      });
   };
 
   const passwordValidation = (e) => {
-    let value = e.target.value;
+    let passwordValue = e.target.value;
 
-    // Limit to 12 characters
-    value = value.slice(0, 12);
+    const passwordLength = /^.{6,}$/;
 
-    const strongPassword =
-    /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&]).{8,12}$/;
-    
     // Validation
-    if (value.length === 0) {
+    if (passwordValue.length === 0) {
       setPasswordError("");
     }
-    else if (!strongPassword.test(value)) {
-      setPasswordError(
-        "Password must be a combination of [a-z], [A-Z], [0-9] and [@$!%*?&] and must be 8-12 characters long"
-      );
+    else if (!passwordLength.test(passwordValue)) {
+      setPasswordError("Password  must be 6 characters long");
     }
     else {
       setPasswordError("");
     }
-    setPassword(value);
-      // Check if password is correct for the given phone number
-    fetch("http://localhost:5000/api/auth/check-password", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({ phone_number: phone, password: value }),
-    })
-      .then((response) => response.json())
-      .then((data) => {
-        if (data.message === "Password is correct") {
-          setPasswordStatus("Password is correct");
-        }
-        else if (data.message === "User not found") {
-          setPasswordStatus("User not found");
-        }
-      });
-  };
+    setPassword(passwordValue);
+  }
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
 
-    if(phone.length === 0 && password.length === 0) {
-      setLoginError("Both Fields are empty");
+    if (phone.length === 0 && password.length === 0) {
+      setLoginStatus("Both Fields are empty");
       return;
     }
     else if (phone.length !== 0 && password.length !== 0) {
-      setLoginError("");
+      setLoginStatus("");
     }
 
-    fetch("http://localhost:5000/api/auth/login", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({ phone_number: phone, password: password }),
-    })
-      .then((response) => response.json())
-      .then((data) => {
-        if (data.message === "Login successful") {
-          setIsLoggedIn(true);
-          navigate("/main");
-          alert(data.message);
-        }
-        else{
-          setLoginError(data.message);
-        }
-      });
-  };
+    const logInResponse = await logIn(phone, password);
 
+    if (logInResponse.message === "User not found") {
+      setLoginStatus("User not found");
+      setPhoneError("Phone number does not exist")
+    }
+    else if (logInResponse.message === "Invalid Password") {
+      setLoginStatus("Invalid Password");
+    }
+    else if (logInResponse.message === "Login successfull") {
+      setIsLoggedIn(true);
+      navigate("/main");
+      alert("Login successfull");
+    }
+    else {
+      setLoginStatus(logInResponse.message);
+    }
+
+    // fetch("http://localhost:5000/api/auth/login", {
+    //   method: "POST",
+    //   headers: {
+    //     "Content-Type": "application/json",
+    //   },
+    //   body: JSON.stringify({ phoneNumber: phone, userPassword: password }),
+    // })
+    //   .then((response) => response.json())
+    //   .then((data) => {
+    //     if (data.message === "Login successfull") {
+    //       setIsLoggedIn(true);
+    //       navigate("/main");
+    //       alert(data.message);
+    //     }
+    //     else {
+    //       setLoginError(data.message);
+    //     }
+    //   });
+  };
 
   return (
     <form onSubmit={handleSubmit}>
@@ -135,7 +107,7 @@ export default function LoginPage({ setMode, setIsLoggedIn }) {
       </div>
 
       {/* Phone Number */}
-      <div className="relative mb-4">
+      <div className="relative mb-5">
         <input
           type="tel"
           pattern="[0-9]{10}"
@@ -146,12 +118,10 @@ export default function LoginPage({ setMode, setIsLoggedIn }) {
           value={phone}
           onChange={phoneValidation}
           className={`peer w-full focus:shadow-md border border-gray-500 rounded-md px-3 py-2 bg-transparent focus:border-gray-500 focus:outline-none " +
-            ${phoneStatus === "Phone number exists" 
-              ? "border-gray-500 shadow-sm shadow-green-300" 
-              : phoneStatus === "Phone number does not exist"
-              ? "border-gray-500 shadow-sm shadow-red-300"
-              : "border-gray-500 focus:border-gray-500"
-          }
+            ${phoneerror === "Phone number does not exist"
+              ? "border-gray-500 shadow-sm shadow-red-500"
+              : ""
+            }
       `}
         />
         <label
@@ -170,10 +140,10 @@ export default function LoginPage({ setMode, setIsLoggedIn }) {
         >
           Phone Number
         </label>
-        {phoneerror && (
+        {/* {phoneerror && (
           <p className="text-grey-500 text-sm mt-1">{phoneerror}</p>
-        )}
-        
+        )} */}
+
       </div>
 
       {/* Password */}
@@ -185,12 +155,10 @@ export default function LoginPage({ setMode, setIsLoggedIn }) {
           value={password}
           onChange={passwordValidation}
           className={`peer w-full focus:shadow-md border border-gray-500 rounded-md px-3 py-2 bg-transparent focus:border-gray-500 focus:outline-none
-            ${passwordStatus === "Password is correct"
-              ? "border-gray-500 shadow-sm shadow-green-300"
-              : passwordStatus === "Password is incorrect" || passwordStatus === "User not found"
-              ? "border-gray-500 shadow-sm shadow-red-300"
-              : "border-gray-500 focus:border-gray-500"
-          }
+            ${passworderror === "Password  must be 6 characters long" || loginStatus === "Invalid Password" || loginStatus === "User not found"
+              ? "border-gray-500 shadow-sm shadow-red-500"
+              : ""
+            }
       `}
         />
         <label
@@ -209,14 +177,14 @@ export default function LoginPage({ setMode, setIsLoggedIn }) {
         >
           Password
         </label>
-        {passworderror && (
+        {/* {passworderror && (
           <p className="text-grey-500 text-sm mt-1">{passworderror}</p>
-        )}
+        )} */}
         <div
           className="absolute right-3 top-3 cursor-pointer text-gray-700 text-xl"
         >
-          {showPassword ? <AiFillEyeInvisible onClick={showPasswordToggle} /> : 
-          <AiFillEye onClick={showPasswordToggle} />}
+          {showPassword ? <AiFillEyeInvisible onClick={showPasswordToggle} /> :
+            <AiFillEye onClick={showPasswordToggle} />}
         </div>
 
       </div>
@@ -248,9 +216,9 @@ export default function LoginPage({ setMode, setIsLoggedIn }) {
         <span className="absolute bottom-0 right-0 w-[2px] h-0 bg-white transition-all duration-500 group-hover:h-full group-hover:-translate-y-full"></span>
 
       </button>
-      {loginError && (
+      {loginStatus && (
         <p className="text-gray-500 text-sm mt-2 text-center font-bold">
-          {loginError}
+          {loginStatus}
         </p>
       )}
       {/* Register */}

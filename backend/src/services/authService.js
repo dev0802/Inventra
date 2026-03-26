@@ -1,71 +1,57 @@
-const adminPool = require('../config/db');
+const adminPool = require('../config/database');
 const bcrypt = require('bcryptjs');
-exports.signup = async(name, phone_number, password) => {
-    const hashedPassword = await bcrypt.hash(password, 10);
+
+exports.signUp = async (name, phoneNumber, userPassword) => {
+  const existUser = await adminPool.query('SELECT * FROM admin WHERE phone_number = $1', [phoneNumber]);
+  if (existUser.rows.length > 0) {
+    return {
+      message: "Phone Number already exists"
+    };
+  }
+  else if (existUser.rows.length === 0) {
+    const hashedPassword = await bcrypt.hash(userPassword, 10);
     const result = await adminPool.query(
       'INSERT INTO admin (name, phone_number, password_hash) VALUES ($1, $2, $3) RETURNING *',
-      [name, phone_number, hashedPassword]
+      [name, phoneNumber, hashedPassword]
     );
     return {
-      message: "Signup successful",
+      message: "Signup successfull",
       user: result.rows[0]
     };
+  }
 };
 
-exports.login = async(phone_number, password) => {
-    const result = await adminPool.query(
-      'SELECT * FROM admin WHERE phone_number = $1',
-      [phone_number]
-    );
-    const user = result.rows[0];
-    if (!user) {
-      return {message : "User not found"};
-    }
-    const isMatch = await bcrypt.compare(password, user.password_hash);
-    
-    if (!isMatch) {
-      return {message : "Invalid Password"};
-    }
-    return {message : "Login successful"};
+exports.logIn = async (phoneNumber, userPassword) => {
+  const result = await adminPool.query(
+    'SELECT * FROM admin WHERE phone_number = $1',
+    [phoneNumber]
+  );
+  const user = result.rows[0];
+  
+  if (!user) {
+    return { message: "User not found" };
+  }
+  const isMatch = await bcrypt.compare(userPassword, user.password_hash);
+  
+  if (!isMatch) {
+    return { message: "Invalid Password" };
+  }
+  return { message: "Login successfull" };
 };
 
-exports.checkPhoneNumber = async(phone_number) => {
-    const result = await adminPool.query(
-      'SELECT * FROM admin WHERE phone_number = $1',
-      [phone_number]
-    );
-    if(result.rows.length > 0) {
-        return {exists : true};
-    }
-    return {exists : false};
-
-};
-
-exports.checkPassword = async(phone_number, password) => {
-    const result = await adminPool.query(
-      'SELECT * FROM admin WHERE phone_number = $1',
-      [phone_number]
-    );
-    const user = result.rows[0];
-    if (!user) {
-        return {message : "User not found"};
-    }
-    const isMatch = await bcrypt.compare(password, user.password_hash);
-    if (!isMatch) {
-        return {message : "Password is incorrect"};
-    }
-    return {message : "Password is correct"};
-};
-
-exports.resetPassword = async(phone_number, new_password) => {
-    const hashedPassword = await bcrypt.hash(new_password, 10);
-    const result = await adminPool.query(
-      'UPDATE admin SET password_hash = $1 WHERE phone_number = $2 RETURNING *',
-      [hashedPassword, phone_number]
-    );
+exports.resetPassword = async (phoneNumber, newUserPassword) => {
+  const hashedPassword = await bcrypt.hash(newUserPassword, 10);
+  const result = await adminPool.query(
+    'UPDATE admin SET password_hash = $1 WHERE phone_number = $2 RETURNING *',
+    [hashedPassword, phoneNumber]
+  );
+  if (result.rowCount === 0) {
     return {
-      message: "Password reset successful",
-      user: result.rows[0]
+      message: "User not found"
     };
-
+  }
+  return {
+    message: "Password reset successful",
+    user: result.rows[0]
+  };
 };

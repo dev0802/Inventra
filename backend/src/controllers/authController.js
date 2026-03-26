@@ -1,57 +1,49 @@
 const authService = require('../services/authService');
 
-exports.signup = async (req, res) => {
-    const {name, phone_number, password } = req.body;
+exports.signUp = async (req, res) => {
+    const { name, phoneNumber, userPassword } = req.body;
     try {
-        const user = await authService.signup(name, phone_number, password);
-        res.status(201).json(user);
+        const user = await authService.signUp(name, phoneNumber, userPassword);
+        if (user.message === "Phone Number already exists") {
+            return res.status(409).json(user);
+        }
+        return res.status(201).json(user); // user created
     } catch (error) {
         console.error(error);
         res.status(500).json({ error: 'Internal Server Error' });
     }
 };
 
-exports.login = async (req, res) => {
-    const { phone_number, password } = req.body;
+exports.logIn = async (req, res) => {
+    const { phoneNumber, userPassword } = req.body;
     try {
-        const user = await authService.login(phone_number, password);
+        const user = await authService.logIn(phoneNumber, userPassword);
+        if (user.message === "User not found") {
+            return res.status(404).json(user);
+        }
+        if (user.message === "Invalid Password") {
+            return res.status(401).json(user);
+        }
         res.status(200).json(user);
-    } catch (error) {        
-        console.error(error);
-        res.status(401).json({ error: 'Invalid credentials' });
-    }
-};
-
-exports.checkPhoneNumber = async (req, res) => {
-    const { phone_number } = req.body;
-    try {
-        const result = await authService.checkPhoneNumber(phone_number);
-        res.status(200).json(result);
     } catch (error) {
         console.error(error);
-        res.status(500).json({ error: 'User not found' });
+        res.status(500).json({ error: 'Internal Server Error' });
     }
 };
-
-exports.checkPassword = async (req, res) => {
-    const { phone_number, password } = req.body;
-    try {
-        const result = await authService.checkPassword(phone_number, password);
-        res.status(200).json(result);
-    } catch (error) {
-        console.error(error);
-        res.status(500).json({ error: 'Password is incorrect' });
-    }
-};
-
 
 exports.resetPassword = async (req, res) => {
-    const { phone_number, new_password } = req.body;
+    const { phoneNumber, newUserPassword } = req.body;
     try {
-        const user = await authService.resetPassword(phone_number, new_password);
-        res.status(200).json(user);
+        const user = await authService.resetPassword(phoneNumber, newUserPassword);
+
+        if (user.message === "User not found") {
+            return res.status(404).json(user);
+        }
+
+        return res.status(200).json(user);
+
     } catch (error) {
         console.error(error);
-        res.status(500).json({ error: 'Internal Server Error' });
+        return res.status(500).json({ error: 'Internal Server Error' });
     }
 };
