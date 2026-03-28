@@ -2,6 +2,8 @@ import React, { useState } from 'react'
 import { AiFillEye, AiFillEyeInvisible } from "react-icons/ai";
 import { useNavigate } from 'react-router-dom';
 import { signUp } from '../../services/api/auth/authApi';
+import {useShowPasswordToggle } from '../../shared/hooks/useShowPassword';
+import { validateName, validatePassword, validatePhoneNumber } from '../../shared/utilis/Validators';
 export default function SignUp({ setMode, setIsLoggedIn }) {
     const [name, setName] = useState("");
     const [phone, setPhone] = useState("");
@@ -9,71 +11,36 @@ export default function SignUp({ setMode, setIsLoggedIn }) {
     const [phoneerror, setPhoneError] = useState("");
     const [passworderror, setPasswordError] = useState("");
     const [nameerror, setNameError] = useState("");
-    // const [loginError, setLoginError] = useState("");
-    const [showPassword, setShowPassword] = useState(false);
     const [phoneStatus, setPhoneStatus] = useState("");
-    // const [phoneValid, setPhoneInValid] = useState(false);
-    const [passwordStatus, setPasswordStatus] = useState("");
-
+    const [showPassword, togglePassword] = useShowPasswordToggle();
+    const [signupError, setSignupError] = useState("");
     const navigate = useNavigate();
-    
-    const showPasswordToggle = () => {
-        setShowPassword(!showPassword);
-    };
-    
-    const nameValidation = (e) => {
-        let value = e.target.value;
 
-        if (/^[a-zA-Z\s]*$/.test(value)) {
-            setNameError("");
-        }
-        else {
-            setNameError("Only letters and spaces are allowed in the name field");
-        }
-        setName(value);
+    const handleNameValidation = (e) =>
+    {
+        let nameValue = e.target.value;
+
+        setName(nameValue);
+        setNameError(validateName(nameValue));
     }
     
-    const phoneValidation = async (e) => {
-        let value = e.target.value;
+    const handlePhoneValidation = (e) => {
+        let phoneValue = e.target.value;
 
         // Remove non-digit characters
-        value = value.replace(/\D/g, "");
+        phoneValue = phoneValue.replace(/\D/g, "");
 
-        if (value.length !== 10) {
-            setPhoneError("Phone number must be 10 digits long");
-        }
-        else {
-            setPhoneError("")
-        }
-        setPhone(value);
+        setPhone(phoneValue);
+        setPhoneError(validatePhoneNumber(phoneValue));
 
     };
 
-    const passwordValidation = (e) => {
+    const handlePasswordValidation = (e) => {
         let passwordValue = e.target.value;
 
-        // Password greater than or equal to 6 characters
-        const passwordLength = /^.{6,}$/;
-
-        // Validation
-        if (passwordValue.length === 0) {
-            setPasswordError("");
-        }
-        else if (!passwordLength.test(passwordValue)) {
-            setPasswordError("Password  must be 6 characters long");
-        }
-        else {
-            setPasswordError("");
-        }
         setPassword(passwordValue);
-
-        if (passwordValue.length >= 6) {
-            setPasswordStatus("Password is valid");
-        }
-        else {
-            setPasswordStatus("Password is invalid");
-        }
-
+        setPasswordError(validatePassword(passwordValue));
+        
     };
 
     const handleSubmit = async (e) => {
@@ -100,8 +67,11 @@ export default function SignUp({ setMode, setIsLoggedIn }) {
             navigate("/main");
             alert("Signup successfull");
         }
-        else {
+        else if(signUpResponse.message === "Phone Number already exists") {
             setPhoneStatus("Phone Number already exists");
+        }
+        else{
+            setSignupError("All fields are required");
         }
     };
 
@@ -120,7 +90,7 @@ export default function SignUp({ setMode, setIsLoggedIn }) {
                     id="name"
                     placeholder=" "
                     value={name}
-                    onChange={nameValidation}
+                    onChange={handleNameValidation}
                     className="peer w-full focus:shadow-md border border-gray-500 rounded-md px-3 py-2 bg-transparent focus:border-gray-500 focus:outline-none"
                 />
                 <label
@@ -151,11 +121,11 @@ export default function SignUp({ setMode, setIsLoggedIn }) {
                     pattern="[0-9]{10}"
                     placeholder=" "
                     value={phone}
-                    onChange={phoneValidation}
+                    onChange={handlePhoneValidation}
                     className={`peer w-full focus:shadow-md border border-gray-500 rounded-md px-3 py-2 bg-transparent focus:border-gray-500 focus:outline-none "
                              ${phoneerror === "Phone number must be 10 digits long" || phoneStatus === "Phone Number already exists"
                             ? "border-gray-500 shadow-sm shadow-red-500"
-                            : phoneerror === ""
+                            : phone.length===10
                                 ? "border-gray-500 shadow-sm shadow-green-500"
                                 : ""
                         }
@@ -190,13 +160,13 @@ export default function SignUp({ setMode, setIsLoggedIn }) {
                     id="password"
                     placeholder=" "
                     value={password}
-                    onChange={passwordValidation}
+                    onChange={handlePasswordValidation}
                     className={`peer w-full focus:shadow-md border border-gray-500 rounded-md px-3 py-2 bg-transparent focus:border-gray-500 focus:outline-none "
-                              ${passwordStatus === "Password is valid"
+                        ${passworderror === "Password must be 6 characters long"
+                            ? "border-gray-500 shadow-sm shadow-red-500"
+                            :password.length>=6
                             ? "border-gray-500 shadow-sm shadow-green-500"
-                            : passwordStatus === "Password is invalid"
-                                ? "border-gray-500 shadow-sm shadow-red-500"
-                                : "border-gray-500 focus:border-gray-500"
+                            :""
                         }
                 
                 `} />
@@ -220,8 +190,8 @@ export default function SignUp({ setMode, setIsLoggedIn }) {
                     <p className="text-grey-500 text-sm mt-1">{passworderror}</p>
                 )}
                 <div className="absolute right-3 top-3 cursor-pointer text-gray-700 text-xl">
-                    {showPassword ? <AiFillEyeInvisible onClick={showPasswordToggle} /> :
-                        <AiFillEye onClick={showPasswordToggle} />}
+                    {showPassword ? <AiFillEyeInvisible onClick={togglePassword} /> :
+                        <AiFillEye onClick={togglePassword} />}
                 </div>
             </div>
 
@@ -242,6 +212,9 @@ export default function SignUp({ setMode, setIsLoggedIn }) {
                 <span className="absolute bottom-0 right-0 w-[2px] h-0 bg-white transition-all duration-500 group-hover:h-full group-hover:-translate-y-full"></span>
 
             </button>
+            {signupError && (
+                <p className="text-gray-600 text-sm mt-1 font-bold">{signupError}</p>
+            )}
             <p className="mt-4 text-sm text-center text-gray-600 font-bold">
                 if you already have an account?{" "}
                 <button

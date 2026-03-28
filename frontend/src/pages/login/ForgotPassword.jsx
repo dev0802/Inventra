@@ -1,48 +1,33 @@
 import React, { useState } from 'react'
 import { AiFillEye, AiFillEyeInvisible } from "react-icons/ai";
 import { resetPassword } from '../../services/api/auth/authApi';
+import { useShowPasswordToggle } from '../../shared/hooks/useShowPassword';
+import { validatePhoneNumber, validatePassword } from '../../shared/utilis/Validators';
 export default function ForgotPassword({ setMode }) {
     const [phone, setPhone] = useState("");
     const [newPassword, setNewPassword] = useState("");
     const [confirmPassword, setConfirmPassword] = useState("");
-    const [newPasswordStatus, setNewPasswordStatus] = useState("");
+    const [newPasswordError, setNewPasswordError] = useState("");
     const [confirmPasswordError, setConfirmPasswordError] = useState("");
-    const [showPassword, setShowPassword] = useState(false);
-    const [phoneStatus, setPhoneStatus] = useState("");
+    const [showPassword, togglePassword] = useShowPasswordToggle();
+    const [phoneError, setPhoneError] = useState("");
 
-    const showPasswordToggle = () => {
-        setShowPassword(!showPassword);
-    };
-
-    const phoneValidation = (e) => {
-        let value = e.target.value;
+    const handlePhoneValidation = (e) => {
+        let phoneValue = e.target.value;
 
         // Remove non-digit characters
-        value = value.replace(/\D/g, "");
+        phoneValue = phoneValue.replace(/\D/g, "");
 
-        if (value.length !== 10) {
-            setPhoneStatus("Phone number must be 10 digits long");
-        } else {
-            setPhoneStatus("");
-        }
-        setPhone(value);
+        setPhone(phoneValue);
+        setPhoneError(validatePhoneNumber(phoneValue));
 
     };
 
-    const newPasswordValidation = (e) => {
-        let newPasswordValue = e.target.value;
+    const handlePasswordValidation = (e) => {
+        let passwordValue = e.target.value;
 
-        // Password greater than or equal to 6 characters
-        const passwordLength = /^.{6,}$/;
-
-        // Validation
-        if (!passwordLength.test(newPasswordValue)) {
-            setNewPasswordStatus("Password  must be 6 characters long");
-        }
-        else{
-            setNewPasswordStatus("")
-        }
-        setNewPassword(newPasswordValue);
+        setNewPassword(passwordValue);
+        setNewPasswordError(validatePassword(passwordValue));
 
     };
 
@@ -59,11 +44,25 @@ export default function ForgotPassword({ setMode }) {
 
     const handleSubmit = async (e) => {
         e.preventDefault();
-
+        if(phone.length === 0)
+        {
+            setPhoneError("Phone Number is required")
+            return;
+        }
+        if(newPassword.length === 0)
+        {
+            setNewPasswordError("New password is required");
+            return;
+        }
+        if(confirmPassword.length === 0)
+        {
+            setConfirmPasswordError("Confirm password is required");
+            return
+        }
         const reset = await resetPassword(phone, newPassword);
 
         if (reset.message === "User not found") {
-            setPhoneStatus("User not found");
+            setPhoneError("User not found");
         }
         else if (reset.message === "Password reset successfull") {
             setMode("Sign In");
@@ -87,10 +86,12 @@ export default function ForgotPassword({ setMode }) {
                     pattern="[0-9]{10}"
                     placeholder=" "
                     value={phone}
-                    onChange={phoneValidation}
+                    onChange={handlePhoneValidation}
                     className={`peer w-full focus:shadow-md border border-gray-500 rounded-md px-3 py-2 bg-transparent focus:border-gray-500 focus:outline-none " +
-                    ${phoneStatus === "User not found" || phoneStatus === "Phone number must be 10 digits long"
+                    ${phoneError === "User not found" || phoneError === "Phone number must be 10 digits long"
                             ? "border-gray-500 shadow-sm shadow-red-500"
+                            : phone.length === 10 || phoneError !== "User not found"
+                            ? "border-gray-500 shadow-sm shadow-green-500"
                             : ""
                         }
                     `} />
@@ -110,8 +111,8 @@ export default function ForgotPassword({ setMode }) {
                 >
                     Phone Number
                 </label>
-                {phoneStatus && (
-                    <p className='className="text-gray-700 text-sm mt-2 text-center'>{phoneStatus}</p>
+                {phoneError && (
+                    <p className='className="text-gray-700 text-sm mt-2 text-center'>{phoneError}</p>
                 )}
             </div>
 
@@ -122,12 +123,14 @@ export default function ForgotPassword({ setMode }) {
                     id="newPassword"
                     placeholder=" "
                     value={newPassword}
-                    onChange={newPasswordValidation}
+                    onChange={handlePasswordValidation}
                     className={`peer w-full focus:shadow-md border border-gray-500 rounded-md px-3 py-2 bg-transparent focus:border-gray-500 focus:outline-none
-                        ${newPasswordStatus === "Password must be 6 characters long"
+                        ${newPasswordError === "Password must be 6 characters long" || newPasswordError === "New password is required"
                             ? "border-gray-500 shadow-sm shadow-red-500"
-                            : "border-gray-500 shadow-sm shadow-green-500"
-                            
+                            :newPassword.length >= 6 
+                            ?"border-gray-500 shadow-sm shadow-green-500"
+                            :""
+
                         }
                     
                         `}
@@ -148,11 +151,11 @@ export default function ForgotPassword({ setMode }) {
                 >
                     New Password
                 </label>
-                {newPasswordStatus && (
-                    <p className="text-gray-700 text-sm mt-2 text-center">{newPasswordStatus}</p>
+                {newPasswordError && (
+                    <p className="text-gray-700 text-sm mt-2 text-center">{newPasswordError}</p>
                 )}
                 <div className='absolute right-3 top-3 text-gray-700 cursor-pointer text-xl'>
-                    {showPassword ? <AiFillEyeInvisible onClick={showPasswordToggle} /> : <AiFillEye onClick={showPasswordToggle} />}
+                    {showPassword ? <AiFillEyeInvisible onClick={togglePassword} /> : <AiFillEye onClick={togglePassword} />}
                 </div>
             </div>
             {/* Confirm Password */}
@@ -166,7 +169,7 @@ export default function ForgotPassword({ setMode }) {
                     className={`peer w-full focus:shadow-md border border-gray-500 rounded-md px-3 py-2 bg-transparent focus:border-gray-500 focus:outline-none
                         ${confirmPasswordError === "Passwords match"
                             ? "border-gray-500 shadow-sm shadow-green-500"
-                            : confirmPasswordError === "Passwords do not match"
+                            : confirmPasswordError === "Passwords do not match" || confirmPasswordError === "Confirm password is required"
                                 ? "border-gray-500 shadow-sm shadow-red-500"
                                 : "border-gray-500 focus:border-gray-500"
                         }
@@ -192,7 +195,7 @@ export default function ForgotPassword({ setMode }) {
                     <p className="text-gray-700 text-sm mt-2 text-center">{confirmPasswordError}</p>
                 )}
                 <div className='absolute right-3 top-3 text-gray-700 cursor-pointer text-xl'>
-                    {showPassword ? <AiFillEyeInvisible onClick={showPasswordToggle} /> : <AiFillEye onClick={showPasswordToggle} />}
+                    {showPassword ? <AiFillEyeInvisible onClick={togglePassword} /> : <AiFillEye onClick={togglePassword} />}
                 </div>
             </div>
 

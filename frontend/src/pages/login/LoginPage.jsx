@@ -2,51 +2,36 @@ import React, { useState } from "react";
 import { AiFillEye, AiFillEyeInvisible } from "react-icons/ai";
 import { useNavigate } from "react-router-dom";
 import { logIn } from "../../services/api/auth/authApi";
+import { useShowPasswordToggle } from "../../shared/hooks/useShowPassword";
+import { validatePassword, validatePhoneNumber } from "../../shared/utilis/Validators";
 export default function LoginPage({ setMode, setIsLoggedIn }) {
   const [phone, setPhone] = useState("");
   const [password, setPassword] = useState("");
   const [phoneerror, setPhoneError] = useState("");
   const [passworderror, setPasswordError] = useState("");
   const [loginStatus, setLoginStatus] = useState("");
-  const [showPassword, setShowPassword] = useState(false);
+  const [showPassword, togglePassword] = useShowPasswordToggle();
 
   const navigate = useNavigate();
 
-  const showPasswordToggle = () => {
-    setShowPassword(!showPassword);
-  };
-
-  const phoneValidation = (e) => {
-    let value = e.target.value;
+  const handlePhoneValidation = (e) => {
+    let phoneValue = e.target.value;
 
     // Remove non-digit characters
-    value = value.replace(/\D/g, "");
+    phoneValue = phoneValue.replace(/\D/g, "");
 
-    if (value.length !== 10) {
-      setPhoneError("Phone number must be 10 digits long");
-    } else {
-      setPhoneError("");
-    }
-    setPhone(value);
+    setPhone(phoneValue);
+    setPhoneError(validatePhoneNumber(phoneValue));
+
   };
 
-  const passwordValidation = (e) => {
+  const handlePasswordValidation = (e) => {
     let passwordValue = e.target.value;
 
-    const passwordLength = /^.{6,}$/;
-
-    // Validation
-    if (passwordValue.length === 0) {
-      setPasswordError("");
-    }
-    else if (!passwordLength.test(passwordValue)) {
-      setPasswordError("Password  must be 6 characters long");
-    }
-    else {
-      setPasswordError("");
-    }
     setPassword(passwordValue);
-  }
+    setPasswordError(validatePassword(passwordValue));
+
+  };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -77,24 +62,6 @@ export default function LoginPage({ setMode, setIsLoggedIn }) {
       setLoginStatus(logInResponse.message);
     }
 
-    // fetch("http://localhost:5000/api/auth/login", {
-    //   method: "POST",
-    //   headers: {
-    //     "Content-Type": "application/json",
-    //   },
-    //   body: JSON.stringify({ phoneNumber: phone, userPassword: password }),
-    // })
-    //   .then((response) => response.json())
-    //   .then((data) => {
-    //     if (data.message === "Login successfull") {
-    //       setIsLoggedIn(true);
-    //       navigate("/main");
-    //       alert(data.message);
-    //     }
-    //     else {
-    //       setLoginError(data.message);
-    //     }
-    //   });
   };
 
   return (
@@ -116,10 +83,12 @@ export default function LoginPage({ setMode, setIsLoggedIn }) {
           id="phone"
           placeholder=" "
           value={phone}
-          onChange={phoneValidation}
+          onChange={handlePhoneValidation}
           className={`peer w-full focus:shadow-md border border-gray-500 rounded-md px-3 py-2 bg-transparent focus:border-gray-500 focus:outline-none " +
-            ${phoneerror === "Phone number does not exist"
+            ${phoneerror === "Phone number does not exist" || loginStatus === "Both fields are empty"
               ? "border-gray-500 shadow-sm shadow-red-500"
+              : phone.length === 10 && phoneerror !== "Phone number does not exist" 
+              ? "border-gray-500 shadow-sm shadow-green-500"
               : ""
             }
       `}
@@ -153,10 +122,12 @@ export default function LoginPage({ setMode, setIsLoggedIn }) {
           id="password"
           placeholder=" "
           value={password}
-          onChange={passwordValidation}
+          onChange={handlePasswordValidation}
           className={`peer w-full focus:shadow-md border border-gray-500 rounded-md px-3 py-2 bg-transparent focus:border-gray-500 focus:outline-none
-            ${passworderror === "Password  must be 6 characters long" || loginStatus === "Invalid Password" || loginStatus === "User not found"
+            ${passworderror === "Password  must be 6 characters long" || loginStatus === "Invalid Password" || loginStatus === "User not found" || loginStatus === "Both fields are empty"
               ? "border-gray-500 shadow-sm shadow-red-500"
+              : password.length >= 6
+              ? "border-gray-500 shadow-sm shadow-green-500"
               : ""
             }
       `}
@@ -183,8 +154,8 @@ export default function LoginPage({ setMode, setIsLoggedIn }) {
         <div
           className="absolute right-3 top-3 cursor-pointer text-gray-700 text-xl"
         >
-          {showPassword ? <AiFillEyeInvisible onClick={showPasswordToggle} /> :
-            <AiFillEye onClick={showPasswordToggle} />}
+          {showPassword ? <AiFillEyeInvisible onClick={togglePassword} /> :
+            <AiFillEye onClick={togglePassword} />}
         </div>
 
       </div>

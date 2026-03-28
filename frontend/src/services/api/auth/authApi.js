@@ -29,7 +29,7 @@ export const resetPassword = async (phone, newPassword) => {
         headers: {
             "Content-Type": "application/json",
         },
-        body: JSON.stringify({ phone_number: phone, newUserPassword: newPassword }),
+        body: JSON.stringify({ phoneNumber: phone, newUserPassword: newPassword }),
     })
 
     return response.json();
