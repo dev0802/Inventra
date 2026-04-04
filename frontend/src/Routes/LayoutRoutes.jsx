@@ -1,17 +1,18 @@
 import React, { useState } from "react";
-import { Routes, Route} from "react-router-dom";
+import { Routes, Route } from "react-router-dom";
 import AuthRoutes from "../pages/login/AuthRoutes";
 import MainPage from "../pages/home/MainPage";
-
+import AddProduct from "../pages/addproducts/AddProduct";
 export default function LayoutRoutes() {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
 
   return (
+
     <div className="relative min-h-screen">
 
       {/* Routes */}
       <Routes>
-        
+
         {/* <Route path="/" element={<Navigate to="/main" />} /> */}
 
         <Route
@@ -31,11 +32,13 @@ export default function LayoutRoutes() {
               <MainPage />
             </div>
           }
-        />
+        >
+          <Route path="addproducts" element={<AddProduct />} />
+        </Route>
       </Routes>
 
       {/* Overlay */}
-      
+
       {!isLoggedIn && (
         <div className="fixed inset-0 flex items-center justify-center bg-black/30 backdrop-blur-sm">
           <AuthRoutes setIsLoggedIn={setIsLoggedIn} />
@@ -43,6 +46,7 @@ export default function LayoutRoutes() {
       )}
 
     </div>
+
   );
 }
 

@@ -4,7 +4,6 @@ import './App.css';
 import LayoutRoutes from './Routes/LayoutRoutes.jsx'
 
 function App() {
-  // const [isLoggedIn, setIsLoggedIn] = useState(false);
   return (
     <div className="App">
       <LayoutRoutes />
