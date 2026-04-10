@@ -5,15 +5,16 @@ import { logIn } from "../../services/api/auth/authApi";
 import { useShowPasswordToggle } from "../../shared/hooks/useShowPassword";
 import { validatePassword, validatePhoneNumber } from "../../shared/utilis/Validators";
 export default function LoginPage({ setMode, setIsLoggedIn }) {
+  // State variables for form inputs, validation errors, and login status
   const [phone, setPhone] = useState("");
   const [password, setPassword] = useState("");
   const [phoneerror, setPhoneError] = useState("");
   const [passworderror, setPasswordError] = useState("");
   const [loginStatus, setLoginStatus] = useState("");
   const [showPassword, togglePassword] = useShowPasswordToggle();
-
+  // Hook for navigating to different routes after successful login
   const navigate = useNavigate();
-
+  // Handlers for validating phone number and password inputs
   const handlePhoneValidation = (e) => {
     let phoneValue = e.target.value;
 
@@ -32,10 +33,10 @@ export default function LoginPage({ setMode, setIsLoggedIn }) {
     setPasswordError(validatePassword(passwordValue));
 
   };
-
+  // Handler for form submission to log in the user
   const handleSubmit = async (e) => {
     e.preventDefault();
-
+    // Check if both fields are empty and set appropriate login status
     if (phone.length === 0 && password.length === 0) {
       setLoginStatus("Both Fields are empty");
       return;
@@ -44,6 +45,7 @@ export default function LoginPage({ setMode, setIsLoggedIn }) {
       setLoginStatus("");
     }
 
+    // Call the logIn API function with the phone number and password
     const logInResponse = await logIn(phone, password);
 
     if (logInResponse.message === "User not found") {
@@ -54,6 +56,7 @@ export default function LoginPage({ setMode, setIsLoggedIn }) {
       setLoginStatus("Invalid Password");
     }
     else if (logInResponse.message === "Login successfull") {
+      localStorage.setItem("userName", logInResponse.name);
       setIsLoggedIn(true);
       navigate("/main");
       alert("Login successfull");

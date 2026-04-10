@@ -1,5 +1,6 @@
+// Controller for handling user authentication (sign-up, log-in, password reset)
 const authService = require('../services/authService');
-
+// Sign-up controller
 exports.signUp = async (req, res) => {
     const { name, phoneNumber, userPassword } = req.body;
     try {
@@ -13,7 +14,7 @@ exports.signUp = async (req, res) => {
         res.status(500).json({ error: 'Internal Server Error' });
     }
 };
-
+// Log-in controller
 exports.logIn = async (req, res) => {
     const { phoneNumber, userPassword } = req.body;
     try {
@@ -30,7 +31,7 @@ exports.logIn = async (req, res) => {
         res.status(500).json({ error: 'Internal Server Error' });
     }
 };
-
+// Password reset controller
 exports.resetPassword = async (req, res) => {
     const { phoneNumber, newUserPassword } = req.body;
     try {

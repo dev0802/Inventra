@@ -5,6 +5,7 @@ import { signUp } from '../../services/api/auth/authApi';
 import {useShowPasswordToggle } from '../../shared/hooks/useShowPassword';
 import { validateName, validatePassword, validatePhoneNumber } from '../../shared/utilis/Validators';
 export default function SignUp({ setMode, setIsLoggedIn }) {
+    // State variables for form inputs, validation errors, and signup status
     const [name, setName] = useState("");
     const [phone, setPhone] = useState("");
     const [password, setPassword] = useState("");
@@ -15,7 +16,7 @@ export default function SignUp({ setMode, setIsLoggedIn }) {
     const [showPassword, togglePassword] = useShowPasswordToggle();
     const [signupError, setSignupError] = useState("");
     const navigate = useNavigate();
-
+    // Handlers for validating name, phone number, and password inputs
     const handleNameValidation = (e) =>
     {
         let nameValue = e.target.value;
@@ -23,7 +24,7 @@ export default function SignUp({ setMode, setIsLoggedIn }) {
         setName(nameValue);
         setNameError(validateName(nameValue));
     }
-    
+    // Handler for validating phone number input
     const handlePhoneValidation = (e) => {
         let phoneValue = e.target.value;
 
@@ -34,7 +35,7 @@ export default function SignUp({ setMode, setIsLoggedIn }) {
         setPhoneError(validatePhoneNumber(phoneValue));
 
     };
-
+    // Handler for validating password input
     const handlePasswordValidation = (e) => {
         let passwordValue = e.target.value;
 
@@ -42,8 +43,9 @@ export default function SignUp({ setMode, setIsLoggedIn }) {
         setPasswordError(validatePassword(passwordValue));
         
     };
-
+    // Handler for form submission to sign up the user
     const handleSubmit = async (e) => {
+        // Prevent the default form submission behavior so that page doesn't reload
         e.preventDefault();
 
         if (phone.length === 0) {
@@ -60,7 +62,7 @@ export default function SignUp({ setMode, setIsLoggedIn }) {
             setPasswordError("Password is required");
             return;
         }
-
+        // Call the signUp API function with the name, phone number, and password
         const signUpResponse = await signUp(name, phone, password);
         if (signUpResponse.message === "Signup successfull") {
             setIsLoggedIn(true);
@@ -110,7 +112,7 @@ export default function SignUp({ setMode, setIsLoggedIn }) {
                     Name
                 </label>
                 {nameerror && (
-                    <p className="text-grey-500 text-sm mt-1">{nameerror}</p>
+                    <p className="text-gray-500 text-sm mt-1">{nameerror}</p>
                 )}
             </div>
             {/*Phone Number Input */}
@@ -123,7 +125,8 @@ export default function SignUp({ setMode, setIsLoggedIn }) {
                     value={phone}
                     onChange={handlePhoneValidation}
                     className={`peer w-full focus:shadow-md border border-gray-500 rounded-md px-3 py-2 bg-transparent focus:border-gray-500 focus:outline-none "
-                             ${phoneerror === "Phone number must be 10 digits long" || phoneStatus === "Phone Number already exists"
+                             
+                        ${phoneerror === "Phone number must be 10 digits long" || phoneStatus === "Phone Number already exists"
                             ? "border-gray-500 shadow-sm shadow-red-500"
                             : phone.length===10
                                 ? "border-gray-500 shadow-sm shadow-green-500"

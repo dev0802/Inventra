@@ -4,6 +4,7 @@ import { resetPassword } from '../../services/api/auth/authApi';
 import { useShowPasswordToggle } from '../../shared/hooks/useShowPassword';
 import { validatePhoneNumber, validatePassword } from '../../shared/utilis/Validators';
 export default function ForgotPassword({ setMode }) {
+    // State variables for form inputs, validation errors, and reset status
     const [phone, setPhone] = useState("");
     const [newPassword, setNewPassword] = useState("");
     const [confirmPassword, setConfirmPassword] = useState("");
@@ -12,6 +13,7 @@ export default function ForgotPassword({ setMode }) {
     const [showPassword, togglePassword] = useShowPasswordToggle();
     const [phoneError, setPhoneError] = useState("");
 
+    // Handler for validating phone number input
     const handlePhoneValidation = (e) => {
         let phoneValue = e.target.value;
 
@@ -22,7 +24,7 @@ export default function ForgotPassword({ setMode }) {
         setPhoneError(validatePhoneNumber(phoneValue));
 
     };
-
+    // Handler for validating new password input
     const handlePasswordValidation = (e) => {
         let passwordValue = e.target.value;
 
@@ -30,7 +32,7 @@ export default function ForgotPassword({ setMode }) {
         setNewPasswordError(validatePassword(passwordValue));
 
     };
-
+    // Handler for validating confirm password input
     const confirmPasswordValidation = (e) => {
         let value = e.target.value;
 
@@ -41,7 +43,7 @@ export default function ForgotPassword({ setMode }) {
         }
         setConfirmPassword(value);
     };
-
+    // Handler for form submission to reset the user's password
     const handleSubmit = async (e) => {
         e.preventDefault();
         if(phone.length === 0)
@@ -59,6 +61,7 @@ export default function ForgotPassword({ setMode }) {
             setConfirmPasswordError("Confirm password is required");
             return
         }
+        // Call the resetPassword API function with the phone number and new password
         const reset = await resetPassword(phone, newPassword);
 
         if (reset.message === "User not found") {

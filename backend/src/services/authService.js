@@ -1,6 +1,7 @@
-const adminPool = require('../config/database');
+// Service for handling user authentication (sign-up, log-in, password reset)
+const {adminPool} = require('../config/database');
 const bcrypt = require('bcryptjs');
-
+// Function to handle user sign-up
 exports.signUp = async (name, phoneNumber, userPassword) => {
   const existUser = await adminPool.query('SELECT * FROM admin WHERE phone_number = $1', [phoneNumber]);
   if (existUser.rows.length > 0) {
@@ -20,12 +21,13 @@ exports.signUp = async (name, phoneNumber, userPassword) => {
   };
 
 };
-
+// Function to handle user log-in
 exports.logIn = async (phoneNumber, userPassword) => {
   const result = await adminPool.query(
     'SELECT * FROM admin WHERE phone_number = $1',
     [phoneNumber]
   );
+
   const user = result.rows[0];
 
   if (!user) {
@@ -36,9 +38,11 @@ exports.logIn = async (phoneNumber, userPassword) => {
   if (!isMatch) {
     return { message: "Invalid Password" };
   }
-  return { message: "Login successfull" };
+  return { message: "Login successfull",
+    name: user.name
+   };
 };
-
+// Function to handle password reset
 exports.resetPassword = async (phoneNumber, newUserPassword) => {
   
   const hashedPassword = await bcrypt.hash(newUserPassword, 10);
