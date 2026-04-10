@@ -66,7 +66,6 @@ export default function ForgotPassword({ setMode }) {
         }
         else if (reset.message === "Password reset successfull") {
             setMode("Sign In");
-            alert("Password reset successfull");
         }
     };
 

@@ -2,7 +2,8 @@ import React, { useState } from 'react'
 import { AiFillEye, AiFillEyeInvisible } from "react-icons/ai";
 import { useNavigate } from 'react-router-dom';
 import { signUp } from '../../services/api/auth/authApi';
-import {useShowPasswordToggle } from '../../shared/hooks/useShowPassword';
+import {useShowPasswordToggle} from '../../shared/hooks/useShowPassword';
+import { useButtonDisable } from '../../shared/hooks/useButtonDisable';
 import { validateName, validatePassword, validatePhoneNumber } from '../../shared/utilis/Validators';
 export default function SignUp({ setMode, setIsLoggedIn }) {
     const [name, setName] = useState("");
@@ -13,13 +14,14 @@ export default function SignUp({ setMode, setIsLoggedIn }) {
     const [nameerror, setNameError] = useState("");
     const [phoneStatus, setPhoneStatus] = useState("");
     const [showPassword, togglePassword] = useShowPasswordToggle();
+    const [isButtonDisabled, buttonDisableHandler] = useButtonDisable(phone, password);
     const [signupError, setSignupError] = useState("");
     const navigate = useNavigate();
 
     const handleNameValidation = (e) =>
     {
         let nameValue = e.target.value;
-
+        
         setName(nameValue);
         setNameError(validateName(nameValue));
     }
@@ -29,7 +31,7 @@ export default function SignUp({ setMode, setIsLoggedIn }) {
 
         // Remove non-digit characters
         phoneValue = phoneValue.replace(/\D/g, "");
-
+        buttonDisableHandler();
         setPhone(phoneValue);
         setPhoneError(validatePhoneNumber(phoneValue));
 
@@ -37,7 +39,7 @@ export default function SignUp({ setMode, setIsLoggedIn }) {
 
     const handlePasswordValidation = (e) => {
         let passwordValue = e.target.value;
-
+        buttonDisableHandler();
         setPassword(passwordValue);
         setPasswordError(validatePassword(passwordValue));
         
@@ -61,14 +63,15 @@ export default function SignUp({ setMode, setIsLoggedIn }) {
             return;
         }
 
+
         const signUpResponse = await signUp(name, phone, password);
         if (signUpResponse.message === "Signup successfull") {
             setIsLoggedIn(true);
             navigate("/main");
-            alert("Signup successfull");
         }
         else if(signUpResponse.message === "Phone Number already exists") {
             setPhoneStatus("Phone Number already exists");
+            
         }
         else{
             setSignupError("All fields are required");
@@ -197,9 +200,10 @@ export default function SignUp({ setMode, setIsLoggedIn }) {
 
 
             <button
-                className="relative w-full py-2 hover:bg-slate-500 font-semibold rounded-lg text-white tracking-widest text-lg overflow-hidden bg-gray-700 shadow-md group"
+                className="relative w-full py-2 hover:bg-slate-500 font-semibold rounded-lg disabled:bg-gray-500 disabled:cursor-not-allowed text-white tracking-widest text-lg overflow-hidden bg-gray-700 shadow-md group"
                 type="submit"
-
+                disabled={isButtonDisabled}
+                
             >
                 Sign Up
 

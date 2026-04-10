@@ -20,12 +20,14 @@ export const validatePhoneNumber = (phoneValue) => {
 }
 
 export const validatePassword = (passwordValue) => {
+    
     const passwordLength = /^.{6,}$/;
     // Validation
     if (passwordValue.length === 0) {
         return "";
     }
     else if (!passwordLength.test(passwordValue)) {
+        
         return "Password  must be 6 characters long";
     }
     return "";

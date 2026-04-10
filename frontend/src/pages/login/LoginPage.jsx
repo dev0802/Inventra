@@ -56,7 +56,6 @@ export default function LoginPage({ setMode, setIsLoggedIn }) {
     else if (logInResponse.message === "Login successfull") {
       setIsLoggedIn(true);
       navigate("/main");
-      alert("Login successfull");
     }
     else {
       setLoginStatus(logInResponse.message);
