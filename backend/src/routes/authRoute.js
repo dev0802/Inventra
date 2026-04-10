@@ -1,3 +1,4 @@
+// Route for handling user authentication (sign-up, log-in, password reset)
 const authController = require('../controllers/authController');
 const express = require('express');
 const router = express.Router();

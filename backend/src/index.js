@@ -1,17 +1,17 @@
+// Main entry point for the Express server
 const express = require('express');
 const cors = require('cors');
 const app = express();
+// Import routes for authentication and product management
 const authRoute = require('./routes/authRoute');
-const adminPool = require('./config/database');
-
+const addProductRoute = require('./routes/addProductRoute');
+// Middleware for parsing JSON and handling CORS
 app.use(express.json());
 app.use(cors());
-
+// Use the imported routes for handling API requests
 app.use('/api/auth/', authRoute);
-app.get("/", async(req,res)=>{
-  const data = await adminPool.query("SELECT * FROM admin");
-  res.json(data.rows);
-})
-app.listen(process.env.PORT || 5000, () => {
-  console.log('Server is running on port 5000');
+app.use('/api/product/', addProductRoute);
+// Start the server and listen on the specified port
+app.listen(process.env.PORT, () => {
+  console.log(`Server is running on port ${process.env.PORT}`);
 });
