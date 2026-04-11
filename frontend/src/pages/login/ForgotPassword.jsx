@@ -2,6 +2,7 @@ import React, { useState } from 'react'
 import { AiFillEye, AiFillEyeInvisible } from "react-icons/ai";
 import { resetPassword } from '../../services/api/auth/authApi';
 import { useShowPasswordToggle } from '../../shared/hooks/useShowPassword';
+import { useButtonDisable } from '../../shared/hooks/useButtonDisable';
 import { validatePhoneNumber, validatePassword } from '../../shared/utilis/Validators';
 export default function ForgotPassword({ setMode }) {
     // State variables for form inputs, validation errors, and reset status
@@ -12,7 +13,7 @@ export default function ForgotPassword({ setMode }) {
     const [confirmPasswordError, setConfirmPasswordError] = useState("");
     const [showPassword, togglePassword] = useShowPasswordToggle();
     const [phoneError, setPhoneError] = useState("");
-
+    const [isButtonDisabled, buttonDisableHandler] = useButtonDisable(phone, newPassword);
     // Handler for validating phone number input
     const handlePhoneValidation = (e) => {
         let phoneValue = e.target.value;
@@ -22,6 +23,7 @@ export default function ForgotPassword({ setMode }) {
 
         setPhone(phoneValue);
         setPhoneError(validatePhoneNumber(phoneValue));
+        
 
     };
     // Handler for validating new password input
@@ -30,7 +32,7 @@ export default function ForgotPassword({ setMode }) {
 
         setNewPassword(passwordValue);
         setNewPasswordError(validatePassword(passwordValue));
-
+        buttonDisableHandler(passwordValue);
     };
     // Handler for validating confirm password input
     const confirmPasswordValidation = (e) => {
@@ -42,6 +44,7 @@ export default function ForgotPassword({ setMode }) {
             setConfirmPasswordError("Passwords match");
         }
         setConfirmPassword(value);
+        buttonDisableHandler(value);
     };
     // Handler for form submission to reset the user's password
     const handleSubmit = async (e) => {
@@ -68,6 +71,7 @@ export default function ForgotPassword({ setMode }) {
             setPhoneError("User not found");
         }
         else if (reset.message === "Password reset successfull") {
+            
             setMode("Sign In");
         }
     };
@@ -92,7 +96,7 @@ export default function ForgotPassword({ setMode }) {
                     className={`peer w-full focus:shadow-md border border-gray-500 rounded-md px-3 py-2 bg-transparent focus:border-gray-500 focus:outline-none " +
                     ${phoneError === "User not found" || phoneError === "Phone number must be 10 digits long"
                             ? "border-gray-500 shadow-sm shadow-red-500"
-                            : phone.length === 10 || phoneError !== "User not found"
+                            : phone.length === 10
                             ? "border-gray-500 shadow-sm shadow-green-500"
                             : ""
                         }
@@ -202,8 +206,9 @@ export default function ForgotPassword({ setMode }) {
             </div>
 
             <button
-                className="relative w-full py-2 hover:bg-slate-500 font-semibold rounded-lg text-white tracking-widest text-lg overflow-hidden bg-gray-700 shadow-md group"
+                className="relative w-full py-2 hover:bg-slate-500 font-semibold rounded-lg disabled:bg-gray-500 disabled:cursor-not-allowed text-white tracking-widest text-lg overflow-hidden bg-gray-700 shadow-md group"
                 type="submit"
+                disabled={isButtonDisabled}
             >
                 Reset Password
 

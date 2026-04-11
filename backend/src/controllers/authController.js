@@ -6,7 +6,7 @@ exports.signUp = async (req, res) => {
     try {
         const user = await authService.signUp(name, phoneNumber, userPassword);
         if (user.message === "Phone Number already exists") {
-            return res.status(409).json(user);
+            return res.status(409).json(user);// conflict
         }
         return res.status(201).json(user); // user created
     } catch (error) {

@@ -1,13 +1,18 @@
 import React from 'react'
 import { NavLink, Outlet } from 'react-router-dom'
 import { useNavigate } from 'react-router-dom';
+import { useState } from 'react';
 export default function MainPage({ setIsLoggedIn }) {
   // Retrieve the user's name from local storage and set up state for dropdown visibility
   const userName = localStorage.getItem("userName");
+  const userNameSignup = localStorage.getItem("userNameSignup");
   // State variable to control the visibility of the user dropdown menu
-  const [showDropdown, setShowDropdown] = React.useState(false);
+  const [showDropdown, setShowDropdown] = useState(false);
   // Extract the first name from the full name for display in the user button
-  const firstName = userName ? userName.split(" ")[0] : "User";
+  const displayName = userName || userNameSignup;
+  const firstName = displayName ? displayName.split(" ")[0] : "User";
+  
+  
   // Hook for navigating to different routes after logout
   const navigate = useNavigate();
   return (

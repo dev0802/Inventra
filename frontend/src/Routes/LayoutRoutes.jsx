@@ -18,7 +18,7 @@ export default function LayoutRoutes() {
         <Route
           path="/"
           element={
-            <div className={!isLoggedIn ? "blur-md pointer-events-none" : ""}>
+            <div className={!isLoggedIn ? "blur-sm pointer-events-none" : ""}>
               <MainPage />
             </div>
           }
@@ -28,7 +28,7 @@ export default function LayoutRoutes() {
         <Route
           path="/main"
           element={
-            <div className={!isLoggedIn ? "blur-md pointer-events-none" : ""}>
+            <div className={!isLoggedIn ? "blur-sm pointer-events-none" : ""}>
               <MainPage setIsLoggedIn={setIsLoggedIn} />
             </div>
           }

@@ -1,17 +1,16 @@
 
 import { useState } from "react";
 
-export const useButtonDisable = (phone, password) => {
+export const useButtonDisable = () => {
     const [isButtonDisabled, setIsButtonDisabled] = useState(true);
 
-    const buttonDisableHandler = () => {
-        if(phone.length === 10 && password.length >=6){
+    const buttonDisableHandler = (latestPassword) => {
+        if(latestPassword.length >= 6){
             setIsButtonDisabled(false);
         }
-        else{
+        else {
             setIsButtonDisabled(true);
         }
-        
     }
 
     return [isButtonDisabled, buttonDisableHandler];

@@ -5,16 +5,15 @@ import { logIn } from "../../services/api/auth/authApi";
 import { useShowPasswordToggle } from "../../shared/hooks/useShowPassword";
 import { validatePassword, validatePhoneNumber } from "../../shared/utilis/Validators";
 export default function LoginPage({ setMode, setIsLoggedIn }) {
-  // State variables for form inputs, validation errors, and login status
   const [phone, setPhone] = useState("");
   const [password, setPassword] = useState("");
   const [phoneerror, setPhoneError] = useState("");
   const [passworderror, setPasswordError] = useState("");
   const [loginStatus, setLoginStatus] = useState("");
   const [showPassword, togglePassword] = useShowPasswordToggle();
-  // Hook for navigating to different routes after successful login
+
   const navigate = useNavigate();
-  // Handlers for validating phone number and password inputs
+
   const handlePhoneValidation = (e) => {
     let phoneValue = e.target.value;
 
@@ -33,10 +32,10 @@ export default function LoginPage({ setMode, setIsLoggedIn }) {
     setPasswordError(validatePassword(passwordValue));
 
   };
-  // Handler for form submission to log in the user
+
   const handleSubmit = async (e) => {
     e.preventDefault();
-    // Check if both fields are empty and set appropriate login status
+
     if (phone.length === 0 && password.length === 0) {
       setLoginStatus("Both Fields are empty");
       return;
@@ -45,7 +44,6 @@ export default function LoginPage({ setMode, setIsLoggedIn }) {
       setLoginStatus("");
     }
 
-    // Call the logIn API function with the phone number and password
     const logInResponse = await logIn(phone, password);
 
     if (logInResponse.message === "User not found") {
@@ -56,7 +54,11 @@ export default function LoginPage({ setMode, setIsLoggedIn }) {
       setLoginStatus("Invalid Password");
     }
     else if (logInResponse.message === "Login successfull") {
-      localStorage.setItem("userName", logInResponse.name);
+      if (logInResponse.name) {
+        localStorage.setItem("userName", logInResponse.name);
+      } else {
+        console.error("Name not found in response:", logInResponse);
+      }
       setIsLoggedIn(true);
       navigate("/main");
     }
@@ -89,9 +91,9 @@ export default function LoginPage({ setMode, setIsLoggedIn }) {
           className={`peer w-full focus:shadow-md border border-gray-500 rounded-md px-3 py-2 bg-transparent focus:border-gray-500 focus:outline-none " +
             ${phoneerror === "Phone number does not exist" || loginStatus === "Both fields are empty"
               ? "border-gray-500 shadow-sm shadow-red-500"
-              : phone.length === 10 && phoneerror !== "Phone number does not exist" 
-              ? "border-gray-500 shadow-sm shadow-green-500"
-              : ""
+              : phone.length === 10 && phoneerror !== "Phone number does not exist"
+                ? "border-gray-500 shadow-sm shadow-green-500"
+                : ""
             }
       `}
         />
@@ -111,9 +113,9 @@ export default function LoginPage({ setMode, setIsLoggedIn }) {
         >
           Phone Number
         </label>
-        {/* {phoneerror && (
-          <p className="text-grey-500 text-sm mt-1">{phoneerror}</p>
-        )} */}
+        {loginStatus === "User not found" && (
+          <p className="text-grey-500 text-sm mt-1">{loginStatus}</p>
+        )}
 
       </div>
 
@@ -129,8 +131,8 @@ export default function LoginPage({ setMode, setIsLoggedIn }) {
             ${passworderror === "Password  must be 6 characters long" || loginStatus === "Invalid Password" || loginStatus === "User not found" || loginStatus === "Both fields are empty"
               ? "border-gray-500 shadow-sm shadow-red-500"
               : password.length >= 6
-              ? "border-gray-500 shadow-sm shadow-green-500"
-              : ""
+                ? "border-gray-500 shadow-sm shadow-green-500"
+                : ""
             }
       `}
         />
@@ -150,9 +152,9 @@ export default function LoginPage({ setMode, setIsLoggedIn }) {
         >
           Password
         </label>
-        {/* {passworderror && (
-          <p className="text-grey-500 text-sm mt-1">{passworderror}</p>
-        )} */}
+        {loginStatus === "Invalid Password" && (
+          <p className="text-grey-500 text-sm mt-1">{loginStatus}</p>
+        )}
         <div
           className="absolute right-3 top-3 cursor-pointer text-gray-700 text-xl"
         >
@@ -189,11 +191,7 @@ export default function LoginPage({ setMode, setIsLoggedIn }) {
         <span className="absolute bottom-0 right-0 w-[2px] h-0 bg-white transition-all duration-500 group-hover:h-full group-hover:-translate-y-full"></span>
 
       </button>
-      {loginStatus && (
-        <p className="text-gray-500 text-sm mt-2 text-center font-bold">
-          {loginStatus}
-        </p>
-      )}
+      
       {/* Register */}
       <p className="mt-4 text-sm text-center text-gray-600 font-bold">
         New User?{" "}

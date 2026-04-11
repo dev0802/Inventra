@@ -9,7 +9,7 @@ exports.signUp = async (name, phoneNumber, userPassword) => {
       message: "Phone Number already exists"
     };
   }
-
+  
   const hashedPassword = await bcrypt.hash(userPassword, 10);
   const result = await adminPool.query(
     'INSERT INTO admin (name, phone_number, password_hash) VALUES ($1, $2, $3) RETURNING *',
@@ -17,9 +17,8 @@ exports.signUp = async (name, phoneNumber, userPassword) => {
   );
   return {
     message: "Signup successfull",
-    user: result.rows[0]
+    user: result.rows[0],
   };
-
 };
 // Function to handle user log-in
 exports.logIn = async (phoneNumber, userPassword) => {

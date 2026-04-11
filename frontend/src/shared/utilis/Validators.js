@@ -27,8 +27,7 @@ export const validatePassword = (passwordValue) => {
         return "";
     }
     else if (!passwordLength.test(passwordValue)) {
-        
-        return "Password  must be 6 characters long";
+        return "Password must be at least 6 characters long";
     }
     return "";
 }

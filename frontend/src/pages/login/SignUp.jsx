@@ -2,7 +2,7 @@ import React, { useState } from 'react'
 import { AiFillEye, AiFillEyeInvisible } from "react-icons/ai";
 import { useNavigate } from 'react-router-dom';
 import { signUp } from '../../services/api/auth/authApi';
-import {useShowPasswordToggle} from '../../shared/hooks/useShowPassword';
+import { useShowPasswordToggle } from '../../shared/hooks/useShowPassword';
 import { useButtonDisable } from '../../shared/hooks/useButtonDisable';
 import { validateName, validatePassword, validatePhoneNumber } from '../../shared/utilis/Validators';
 export default function SignUp({ setMode, setIsLoggedIn }) {
@@ -19,10 +19,9 @@ export default function SignUp({ setMode, setIsLoggedIn }) {
     const [signupError, setSignupError] = useState("");
     const navigate = useNavigate();
     // Handlers for validating name, phone number, and password inputs
-    const handleNameValidation = (e) =>
-    {
+    const handleNameValidation = (e) => {
         let nameValue = e.target.value;
-        
+
         setName(nameValue);
         setNameError(validateName(nameValue));
     }
@@ -32,19 +31,19 @@ export default function SignUp({ setMode, setIsLoggedIn }) {
 
         // Remove non-digit characters
         phoneValue = phoneValue.replace(/\D/g, "");
-        buttonDisableHandler();
         setPhone(phoneValue);
         setPhoneError(validatePhoneNumber(phoneValue));
-
+        setPhoneStatus("");
     };
+
     // Handler for validating password input
     const handlePasswordValidation = (e) => {
-        let passwordValue = e.target.value;
-        buttonDisableHandler();
+        const passwordValue = e.target.value;
         setPassword(passwordValue);
         setPasswordError(validatePassword(passwordValue));
-        
+        buttonDisableHandler(passwordValue);
     };
+
     // Handler for form submission to sign up the user
     const handleSubmit = async (e) => {
         // Prevent the default form submission behavior so that page doesn't reload
@@ -64,22 +63,20 @@ export default function SignUp({ setMode, setIsLoggedIn }) {
             setPasswordError("Password is required");
             return;
         }
-<<<<<<< HEAD
 
-
-=======
         // Call the signUp API function with the name, phone number, and password
->>>>>>> add-product-backend
+
         const signUpResponse = await signUp(name, phone, password);
         if (signUpResponse.message === "Signup successfull") {
+            localStorage.setItem("userNameSignup", signUpResponse.user.name);
             setIsLoggedIn(true);
             navigate("/main");
         }
-        else if(signUpResponse.message === "Phone Number already exists") {
-            setPhoneStatus("Phone Number already exists");
-            
+        else if (signUpResponse.message === "Phone Number already exists") {
+            setPhoneStatus("Phone number already exists");
+            console.log(phoneStatus);
         }
-        else{
+        else {
             setSignupError("All fields are required");
         }
     };
@@ -133,9 +130,9 @@ export default function SignUp({ setMode, setIsLoggedIn }) {
                     onChange={handlePhoneValidation}
                     className={`peer w-full focus:shadow-md border border-gray-500 rounded-md px-3 py-2 bg-transparent focus:border-gray-500 focus:outline-none "
                              
-                        ${phoneerror === "Phone number must be 10 digits long" || phoneStatus === "Phone Number already exists"
+                        ${phoneerror === "Phone number must be 10 digits long" || phoneStatus === "Phone number already exists"
                             ? "border-gray-500 shadow-sm shadow-red-500"
-                            : phone.length===10
+                            : phone.length === 10
                                 ? "border-gray-500 shadow-sm shadow-green-500"
                                 : ""
                         }
@@ -174,9 +171,9 @@ export default function SignUp({ setMode, setIsLoggedIn }) {
                     className={`peer w-full focus:shadow-md border border-gray-500 rounded-md px-3 py-2 bg-transparent focus:border-gray-500 focus:outline-none "
                         ${passworderror === "Password must be 6 characters long"
                             ? "border-gray-500 shadow-sm shadow-red-500"
-                            :password.length>=6
-                            ? "border-gray-500 shadow-sm shadow-green-500"
-                            :""
+                            : password.length >= 6
+                                ? "border-gray-500 shadow-sm shadow-green-500"
+                                : ""
                         }
                 
                 `} />
@@ -210,7 +207,7 @@ export default function SignUp({ setMode, setIsLoggedIn }) {
                 className="relative w-full py-2 hover:bg-slate-500 font-semibold rounded-lg disabled:bg-gray-500 disabled:cursor-not-allowed text-white tracking-widest text-lg overflow-hidden bg-gray-700 shadow-md group"
                 type="submit"
                 disabled={isButtonDisabled}
-                
+
             >
                 Sign Up
 

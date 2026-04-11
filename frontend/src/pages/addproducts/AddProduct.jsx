@@ -76,19 +76,20 @@ export default function AddProduct() {
         e.preventDefault();
 
         if (!productData.itemDescription) {
-            alert("Item Description empty");
+            console.log("item description is required");
             return;
         }
         if (!productData.grossWeight) {
-            alert("Gross Weight empty");
+            
             return;
         }
         const response = await addProduct(productData);
         if (response.message === "Product added successfully") {
-            alert(`Product added successfully with item code: ${response.product.item_code}`);
+            console.log("Product added successfully");
             handleReset();
-        } else {
-            alert("Failed to add product");
+        } 
+        else {
+            console.log("Failed to add product");
         }
     };
 
