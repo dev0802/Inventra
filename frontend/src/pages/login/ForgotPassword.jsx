@@ -34,6 +34,7 @@ export default function ForgotPassword({ setMode }) {
         setNewPasswordError(validatePassword(passwordValue));
         buttonDisableHandler(passwordValue);
     };
+
     // Handler for validating confirm password input
     const confirmPasswordValidation = (e) => {
         let value = e.target.value;
@@ -46,6 +47,7 @@ export default function ForgotPassword({ setMode }) {
         setConfirmPassword(value);
         buttonDisableHandler(value);
     };
+    
     // Handler for form submission to reset the user's password
     const handleSubmit = async (e) => {
         e.preventDefault();

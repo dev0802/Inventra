@@ -36,11 +36,21 @@ export default function MainPage({ setIsLoggedIn }) {
               Add Products
             </NavLink>
             {/* View Products */}
-            <button
+            <NavLink
+              to='/main/viewproducts'
+              className={({ isActive }) =>
+                isActive
+                  ? 'relative text-center text-gray-600 text-lg after:absolute after:left-0 after:bottom-0 after:h-[3px] after:w-full after:bg-gray-600 after:transition-all after:duration-300 font-semibold px-1 md:px-4 py-1.5 md:py-2 transition-all duration-200 whitespace-nowrap'
+                  : 'relative text-center text-white text-lg after:absolute after:left-0 after:bottom-0 after:h-[3px] after:w-0 after:bg-gray-600 after:transition-all after:duration-300 hover:after:w-full hover:text-gray-600 font-semibold px-1 md:px-4 py-1.5 md:py-2 transition-all duration-200 whitespace-nowrap'
+              }
+            >
+              View Products
+            </NavLink>
+            {/* <button
               className='relative text-center text-white text-lg after:absolute after:left-0 after:centre after:bottom-0 after:h-[3px] after:w-0 after:bg-gray-500 after:transition-all after:duration-300 hover:after:w-full hover:text-gray-500 font-semibold px-1 md:px-4 py-1.5 md:py-2  transition-all duration-200 whitespace-nowrap'          >
 
               View Products
-            </button>
+            </button> */}
             {/* Print Invoice */}
             <button
               className='relative text-center text-white text-lg after:absolute after:left-0 after:centre after:bottom-0 after:h-[3px] after:w-0 after:bg-gray-500 after:transition-all after:duration-300 hover:after:w-full hover:text-gray-500 font-semibold px-1 md:px-4 py-1.5 md:py-2  transition-all duration-200 whitespace-nowrap'          >

@@ -143,7 +143,7 @@ export default function AddProduct() {
                         <select name='itemDescription' value={productData.itemDescription} onChange={handleChange} className='flex-1 px-4 py-2 rounded-full border border-gray-400 bg-white/50 outline-none focus:border-gray-400 focus:shadow-md appearance-none cursor-pointer'>
                             <option value=''>-- Select --</option>
                             {itemDescriptions.map((item, index) => (
-                                <option key={index} value={item}>{item}</option>  // ✅ dynamic options
+                                <option key={index} value={item}>{item}</option>  // dynamic options
                             ))}
 
                         </select>
