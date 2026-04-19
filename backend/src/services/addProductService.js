@@ -1,5 +1,5 @@
 // Service for adding a new product to the database
-const {productDetailPool} = require('../config/database');
+const {productDetailPool, itemDescriptionPool} = require('../config/database');
 // Function to add a new product to the database
 exports.addProduct = async (itemCode, itemDescription, grossWeight, stoneWeight, motiWeight, diamondWeight, solitaireWeight, colorStone, minnaWeight, colouring, netWeight, saleDate, hsnCode, isSold, isDeleted) => {
     // Generate a new item code by incrementing the last item code in the database
@@ -29,3 +29,24 @@ exports.addProduct = async (itemCode, itemDescription, grossWeight, stoneWeight,
         product: addItem.rows[0]
     };
 };
+
+exports.itemDescriptions = async (itemDescription) => {
+    const addItemDescription = await itemDescriptionPool.query(
+        'INSERT INTO itemdescription(item_description) VALUES($1) RETURNING *',
+        [itemDescription]
+    );
+
+    return addItemDescription.rows[0];
+}
+exports.getItemDescriptions=async()=>{
+    const getItemDescription = await itemDescriptionPool.query('SELECT * FROM itemdescription');
+    return getItemDescription.rows;
+}
+
+exports.deleteItemDescription = async (itemDescription) => {
+    const result = await itemDescriptionPool.query(
+        'DELETE FROM itemdescription WHERE item_description = $1 RETURNING *',
+        [itemDescription]
+    );
+    return result.rows[0];
+}
