@@ -4,6 +4,7 @@ import AuthRoutes from "../pages/login/AuthRoutes";
 import MainPage from "../pages/home/MainPage";
 import AddProduct from "../pages/addproducts/AddProduct";
 import ViewProduct from "../pages/viewproducts/ViewProduct";
+import PrintInvoice from "../pages/printinvoice/PrintInvoice";
 export default function LayoutRoutes() {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
 
@@ -36,6 +37,7 @@ export default function LayoutRoutes() {
         >
           <Route path="addproducts" element={<AddProduct />} />
           <Route path="viewproducts" element={<ViewProduct />} />
+          <Route path="printinvoice" element={<PrintInvoice/>}/>
         </Route>
       </Routes>
 

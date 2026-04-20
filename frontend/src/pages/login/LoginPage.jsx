@@ -60,7 +60,7 @@ export default function LoginPage({ setMode, setIsLoggedIn }) {
         console.error("Name not found in response:", logInResponse);
       }
       setIsLoggedIn(true);
-      navigate("/main");
+      navigate("/main/printinvoice");
     }
     else {
       setLoginStatus(logInResponse.message);

@@ -54,9 +54,16 @@ export default function MainPage({ setIsLoggedIn }) {
               View Products
             </button> */}
             {/* Print Invoice */}
-            <button className="relative text-center text-white text-lg after:absolute after:left-0 after:centre after:bottom-0 after:h-[3px] after:w-0 after:bg-gray-500 after:transition-all after:duration-300 hover:after:w-full hover:text-gray-500 font-semibold px-1 md:px-4 py-1.5 md:py-2  transition-all duration-200 whitespace-nowrap">
-              Print Invoice
-            </button>
+            <NavLink
+              to="/main/printinvoice"
+              className={({ isActive }) =>
+                isActive
+                  ? "relative text-center text-gray-600 text-lg after:absolute after:left-0 after:bottom-0 after:h-[3px] after:w-full after:bg-gray-600 after:transition-all after:duration-300 font-semibold px-1 md:px-4 py-1.5 md:py-2 transition-all duration-200 whitespace-nowrap"
+                  : "relative text-center text-white text-lg after:absolute after:left-0 after:bottom-0 after:h-[3px] after:w-0 after:bg-gray-600 after:transition-all after:duration-300 hover:after:w-full hover:text-gray-600 font-semibold px-1 md:px-4 py-1.5 md:py-2 transition-all duration-200 whitespace-nowrap"
+              }
+            >
+              Print Invoice 
+              </NavLink>
             {/* Report */}
             <button className="relative text-center text-white text-lg after:absolute after:left-0 after:centre after:bottom-0 after:h-[3px] after:w-0 after:bg-gray-500 after:transition-all after:duration-300 hover:after:w-full hover:text-gray-500 font-semibold px-1 md:px-4 py-1.5 md:py-2  transition-all duration-200 whitespace-nowrap">
               Report
@@ -75,6 +82,14 @@ export default function MainPage({ setIsLoggedIn }) {
           {/* Dropdown */}
           {showDropdown && (
             <div className="absolute right-0 mt-2 w-32 bg-gray-500 rounded-lg shadow-lg z-50">
+              <button
+                onClick={() => {
+                  setShowDropdown(false);
+                }}
+                className="w-full text-left px-4 py-2 text-sm text-white hover:bg-gray-400 rounded-lg"
+              >
+                Setting
+              </button>
               <button
                 onClick={() => {
                   localStorage.removeItem("userName");

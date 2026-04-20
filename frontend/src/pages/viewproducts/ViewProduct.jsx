@@ -49,36 +49,34 @@ export default function ViewProduct() {
     });
   };
 
-    const handleDelete = async (product) => {
-      try {
-        await updateProductDetails({
-          itemCode: product.item_code,
-          itemDescription: product.item_description,
-          grossWeight: product.gross_weight,
-          stoneWeight: product.stone_weight,
-          motiWeight: product.moti_weight,
-          diamondWeight: product.diamond_weight,
-          solitaireWeight: product.solitaire_weight,
-          colorStone: product.color_stone,
-          minnaWeight: product.minna_weight,
-          colouring: product.colouring,
-          netWeight: product.net_weight,
-          purchasedDate: product.purchased_date,
-          saleDate: product.sale_date,
-          isSold: product.is_sold,
-          isDeleted: true,
-        });
-        setLoadProducts((prev) =>
-            prev.map((p) =>
-                p.product_id === product.product_id 
-                    ? { ...p, is_deleted: true }
-                    : p
-            )
-        );
-      } catch (error) {
-        console.error("Delete failed:", error);
-      }
-    };
+  const handleDelete = async (product) => {
+    try {
+      await updateProductDetails({
+        itemCode: product.item_code,
+        itemDescription: product.item_description,
+        grossWeight: product.gross_weight,
+        stoneWeight: product.stone_weight,
+        motiWeight: product.moti_weight,
+        diamondWeight: product.diamond_weight,
+        solitaireWeight: product.solitaire_weight,
+        colorStone: product.color_stone,
+        minnaWeight: product.minna_weight,
+        colouring: product.colouring,
+        netWeight: product.net_weight,
+        purchasedDate: product.purchased_date,
+        saleDate: product.sale_date,
+        isSold: product.is_sold,
+        isDeleted: true,
+      });
+      setLoadProducts((prev) =>
+        prev.map((p) =>
+          p.product_id === product.product_id ? { ...p, is_deleted: true } : p,
+        ),
+      );
+    } catch (error) {
+      console.error("Delete failed:", error);
+    }
+  };
 
   const handleApply = async () => {
     // API call here later
@@ -150,8 +148,8 @@ export default function ViewProduct() {
 
   const handleDataUpdate = async () => {
     try {
-      await updateProductDetails(updateData); // update karo
-      await handleLoadProduct(); // fresh data load karo
+      await updateProductDetails(updateData);
+      await handleLoadProduct();
       setUpdatePopup(false);
     } catch (error) {
       console.error(error);
@@ -213,8 +211,8 @@ export default function ViewProduct() {
           </div>
 
           {/* Table */}
-          <div className="bg-white/50 rounded-xl shadow-md overflow-y-scroll">
-            <table className="w-full border-collapse text-sm">
+          <div className="bg-white/50 rounded-xl shadow-md overflow-x-auto overflow-y-auto max-h-[70vh]">
+            <table className="w-full border-collapse text-sm min-w-[1400px]">
               <thead>
                 <tr>
                   <th className="border border-gray-300 px-3 py-2">
