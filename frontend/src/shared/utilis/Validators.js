@@ -10,6 +10,7 @@ export const validateName = (nameValue) => {
 }
 
 export const validatePhoneNumber = (phoneValue) => {
+    
     if (phoneValue.length === 0) {
         return "";
     }

@@ -184,7 +184,7 @@ export default function ViewProduct() {
   );
 
   return (
-    <div className="h-screen p-1 ">
+    <div className="p-1">
       <div className="flex-1 bg-gray-300 shadow-lg shadow-gray-600 border border-gray-400 rounded-2xl w-full p-3 sm:p-4 md:p-6">
         <div className="flex-1 bg-white/50 mt-4 rounded-lg p-6 shadow-md ">
           {/* Filter Button */}

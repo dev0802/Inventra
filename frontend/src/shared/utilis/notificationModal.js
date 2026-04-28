@@ -18,11 +18,11 @@ export default function notificationModal({ isOpen, onClose, type = "success", t
         onClick={(e) => e.stopPropagation()}
       >
         <p className={`text-4xl mb-3 ${color}`}>{type === "success" ? "✓" : "✕"}</p>
-        <h2 className={`text-lg font-semibold mb-1 ${color}`}>{title}</h2>
-        <p className="text-sm text-gray-500 mb-5">{message}</p>
+        <h2 className={`text-xl font-semibold mb-1 ${color}`}>{title}</h2>
+        <p className="text-lg text-gray-500 mb-5">{message}</p>
         <button
           onClick={onClose}
-          className={`w-full py-2 rounded-lg text-white text-sm font-medium ${btn}`}
+          className={`w-full py-2 rounded-lg text-white text-md font-medium ${btn}`}
         >
           OK
         </button>

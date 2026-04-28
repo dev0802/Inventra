@@ -1,9 +1,9 @@
 // Service for handling user authentication (sign-up, log-in, password reset)
-const {adminPool} = require('../config/database');
+const Pool = require('../config/database');
 const bcrypt = require('bcryptjs');
 // Function to handle user sign-up
 exports.signUp = async (name, phoneNumber, userPassword) => {
-  const existUser = await adminPool.query('SELECT * FROM admin WHERE phone_number = $1', [phoneNumber]);
+  const existUser = await Pool.query('SELECT * FROM admin WHERE phone_number = $1', [phoneNumber]);
   if (existUser.rows.length > 0) {
     return {
       message: "Phone Number already exists"
@@ -11,7 +11,7 @@ exports.signUp = async (name, phoneNumber, userPassword) => {
   }
   
   const hashedPassword = await bcrypt.hash(userPassword, 10);
-  const result = await adminPool.query(
+  const result = await Pool.query(
     'INSERT INTO admin (name, phone_number, password_hash) VALUES ($1, $2, $3) RETURNING *',
     [name, phoneNumber, hashedPassword]
   );
@@ -22,7 +22,7 @@ exports.signUp = async (name, phoneNumber, userPassword) => {
 };
 // Function to handle user log-in
 exports.logIn = async (phoneNumber, userPassword) => {
-  const result = await adminPool.query(
+  const result = await Pool.query(
     'SELECT * FROM admin WHERE phone_number = $1',
     [phoneNumber]
   );
@@ -45,7 +45,7 @@ exports.logIn = async (phoneNumber, userPassword) => {
 exports.resetPassword = async (phoneNumber, newUserPassword) => {
   
   const hashedPassword = await bcrypt.hash(newUserPassword, 10);
-  const result = await adminPool.query(
+  const result = await Pool.query(
     'UPDATE admin SET password_hash = $1 WHERE phone_number = $2 RETURNING *',
     [hashedPassword, phoneNumber]
   );

@@ -38,6 +38,7 @@ export default function LayoutRoutes() {
           <Route path="addproducts" element={<AddProduct />} />
           <Route path="viewproducts" element={<ViewProduct />} />
           <Route path="printinvoice" element={<PrintInvoice/>}/>
+          <Route path="report" element={<div className="p-4">Report Page - Coming Soon!</div>} />
         </Route>
       </Routes>
 
