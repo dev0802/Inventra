@@ -8,10 +8,22 @@ export default function notificationModal({ isOpen, onClose, type = "success", t
 
   const { color, btn } = styles[type];
 
+  const handleKeyDown = (e) => {
+    if (e.key === "Enter")
+    {
+      onClose();
+    }
+    if(e.key === "Tab")
+    {
+      e.preventDefault();
+    }
+  }
+
   return (
     <div
-      className="fixed inset-0 bg-black/40 z-[100] flex items-center justify-center px-4"
+      className="fixed inset-0 bg-black/40 z-[999] backdrop-blur-sm flex items-center justify-center px-4"
       onClick={onClose}
+      onKeyDown = {handleKeyDown}
     >
       <div
         className="bg-white rounded-2xl p-6 w-full max-w-sm text-center shadow-xl"

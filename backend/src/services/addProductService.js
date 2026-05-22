@@ -1,5 +1,5 @@
 // Service for adding a new product to the database
-const Pool = require('../config/database');
+const {Pool} = require('../config/database');
 // Function to add a new product to the database
 exports.addProduct = async (itemCode, itemDescription, grossWeight, stoneWeight, motiWeight, diamondWeight, solitaireWeight, colorStone, minnaWeight, colouring, netWeight, saleDate, hsnCode, isSold, isDeleted) => {
     // Generate a new item code by incrementing the last item code in the database
@@ -38,6 +38,7 @@ exports.itemDescriptions = async (itemDescription) => {
 
     return addItemDescription.rows[0];
 }
+
 exports.getItemDescriptions=async()=>{
     const getItemDescription = await Pool.query('SELECT * FROM itemdescription');
     return getItemDescription.rows;

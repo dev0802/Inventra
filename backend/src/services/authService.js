@@ -1,6 +1,7 @@
 // Service for handling user authentication (sign-up, log-in, password reset)
-const Pool = require('../config/database');
+const {Pool} = require('../config/database');
 const bcrypt = require('bcryptjs');
+const jwt = require('jsonwebtoken');
 // Function to handle user sign-up
 exports.signUp = async (name, phoneNumber, userPassword) => {
   const existUser = await Pool.query('SELECT * FROM admin WHERE phone_number = $1', [phoneNumber]);
@@ -37,8 +38,16 @@ exports.logIn = async (phoneNumber, userPassword) => {
   if (!isMatch) {
     return { message: "Invalid Password" };
   }
+
+  const token = jwt.sign({
+    userId: user.id,
+    userName: user.name,
+  }, 
+  process.env.JWT_SECRET, { expiresIn: '7d' }
+  );
   return { message: "Login successfull",
-    name: user.name
+    name: user.name,
+    token: token
    };
 };
 // Function to handle password reset

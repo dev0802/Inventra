@@ -5,10 +5,98 @@ import {
   updateCustomerDetail,
   getProductByItemCode,
   saveItemDetail,
+  saveInvoice,
 } from "../../services/api/printinvoice/printInvoiceApi";
+import { pdf } from "@react-pdf/renderer";
+import InvoicePdf from "../../shared/component/InvoicePdf";
+
 import NotificationModal from "../../shared/utilis/notificationModal";
 
 export default function PrintInvoice() {
+  const [includeGST, setIncludeGST] = useState(true);
+
+  const handlePrintInvoice = async () => {
+    if (!customerData.customerName.trim())
+      return showNotification("error", "Error", "Customer Name is required!");
+    if (!customerData.phone1.trim() || customerData.phone1.length < 10)
+      return showNotification(
+        "error",
+        "Error",
+        "Valid Phone Number is required!",
+      );
+    if (!customerData.birthday)
+      return showNotification("error", "Error", "Birthday is required!");
+    if (!customerData.vpo.trim())
+      return showNotification("error", "Error", "VPO is required!");
+    if (!customerData.pinCode.trim())
+      return showNotification("error", "Error", "PIN Code is required!");
+    if (!customerData.state.trim())
+      return showNotification("error", "Error", "State is required!");
+    if (!customerData.district.trim())
+      return showNotification("error", "Error", "District is required!");
+
+    try {
+      try {
+        await customerDetail(customerData);
+        console.log("Step 1: Customer saved");
+      } catch (error) {
+        console.log("Step 1 error:", error.message);
+        if (error.message !== "Phone number already exists")
+          return showNotification("error", "Error", "Failed to save customer.");
+      }
+
+      const itemResult = await saveItemDetail(rows);
+      console.log("Step 2: Items saved:", itemResult);
+      const group_code = itemResult.groupCode;
+      console.log("Step 2b: group_code:", group_code);
+
+      const customerResult = await getCustomerByPhone(
+        customerData.phone1Country,
+        customerData.phone1,
+      );
+      console.log("Step 3: Customer fetched:", customerResult);
+
+      if (!customerResult || !customerResult.customer_id) {
+        return showNotification("error", "Error", "Customer not found!");
+      }
+
+      const customer_id = customerResult.customer_id;
+      const today = new Date().toISOString().split("T")[0];
+
+      const saved = await saveInvoice({
+        customer_id,
+        group_code,
+        invoice_date: today,
+      });
+      console.log("Step 4: Invoice saved:", saved);
+
+      const blob = await pdf(
+        <InvoicePdf
+          customerData={saved.customer}
+          rows={saved.items}
+          invoiceNumber={saved.display_number}
+          invoiceDate={saved.invoice_date}
+          cgstRate={includeGST ? 1.5 : 0}
+          sgstRate={includeGST ? 1.5 : 0}
+        />,
+      ).toBlob();
+      console.log("Step 6: PDF blob created");
+
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement("a");
+      link.href = url;
+      link.download = `Invoice-${saved.display_number || saved.display_number}.pdf`;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+
+      showNotification("success", "Success", "Invoice saved successfully!");
+      handleReset();
+    } catch (err) {
+      console.error("Invoice error at unknown step:", err);
+      showNotification("error", "Error", "Failed to generate invoice");
+    }
+  };
   const todayDate = () => {
     const today = new Date();
     return today.toISOString().split("T")[0];
@@ -179,6 +267,7 @@ export default function PrintInvoice() {
       customerGstin: "",
     });
   };
+
   const formatDate = (dateStr) => {
     if (!dateStr) return "";
     const date = new Date(dateStr);
@@ -269,29 +358,45 @@ export default function PrintInvoice() {
       try {
         const result = await getProductByItemCode(e.target.value);
         if (result && result.length > 0) {
-          const currentRow = rows.find(row => row.id === rowId);
+          const currentRow = rows.find((row) => row.id === rowId);
 
-          const newRows = result.map((item, i) => ({
-            ...(i === 0
-              ? currentRow
-              : {
-                  id: generateId(),
-                  unit: "Gms.",
-                  rate: "",
-                  unitPrice: false,
-                  makingCharges: "",
-                }),
-            itemDescription: item.item_description,
-            hsnCode: item.hsn_code,
-            quantity: item.gross_weight,
-          }));
+          const newRows = result.map((item, i) => {
+            const desc = (item.item_description || "").toLowerCase();
+            const isDiamondOrSolitaire =
+              desc.includes("diamond") || desc.includes("solitaire");
 
-          setRows(prev => {
-            const otherRows = prev.filter(row => row.id !== rowId);
+            return {
+              ...(i === 0
+                ? currentRow
+                : {
+                    id: generateId(),
+                    unit: "Gms.",
+                    rate: "",
+                    unitPrice: false,
+                    makingCharges: "",
+                  }),
+              itemDescription: item.item_description,
+              hsnCode: item.hsn_code,
+              quantity: item.gross_weight,
+              unitPrice: i === 0 ? true : false,
+              unit: isDiamondOrSolitaire
+                ? "Ct."
+                : i === 0
+                  ? currentRow.unit
+                  : "Gms.",
+            };
+          });
+
+          setRows((prev) => {
+            const otherRows = prev.filter((row) => row.id !== rowId);
             return [...otherRows, ...newRows];
           });
         } else {
-          showNotification("error", "Not Found", "Product not found!");
+          showNotification(
+            "error",
+            "Error",
+            "This product is sold or deleted.",
+          );
         }
       } catch (error) {
         console.error("Error:", error);
@@ -299,17 +404,65 @@ export default function PrintInvoice() {
     }
   };
 
-  const handleSubmitItemDetail = async () => {
-    try {
-      const response = await saveItemDetail(rows);
-      if (response) {
-        showNotification("success", "Success", "Item details saved successfully!");
-      }
-    } catch (error) {
-      console.error("Error:", error);
-      showNotification("error", "Error", "Failed to save item details.");
-    }
-  };
+  // const handleSubmitItemDetail = async () => {
+  //   try {
+  //     const response = await saveItemDetail(rows);
+  //     if (response) {
+  //       showNotification("success", "Success", "Item details saved successfully!");
+  //     }
+  //   } catch (error) {
+  //     console.error("Error:", error);
+  //     showNotification("error", "Error", "Failed to save item details.");
+  //   }
+  // };
+
+  // const handlePrintInvoice = async() => {
+  //   if (!customerData.customerName.trim()) {
+  //   showNotification("error", "Error", "Customer Name is required!");
+  //   return;
+  // }
+  // if (!customerData.phone1.trim() || customerData.phone1.length < 10) {
+  //   showNotification("error", "Error", "Valid Phone Number is required!");
+  //   return;
+  // }
+  // if (!customerData.birthday) {
+  //   showNotification("error", "Error", "Birthday is required!");
+  //   return;
+  // }
+  // if(!customerData.pinCode.trim()){
+  //   showNotification("error", "Error", "PIN Code is required!");
+  //   return;
+  // }
+  // if(!customerData.state.trim()){
+  //   showNotification("error", "Error", "State is required!");
+  //   return;
+  // }
+  // if(!customerData.district.trim()){
+  //   showNotification("error", "Error", "District is required!");
+  //   return;
+  // }
+  // try {
+  //     await customerDetail(customerData);
+  //     await saveItemDetail(rows);
+  //     showNotification("success", "Success", "Invoice saved successfully!");
+  //     handleReset();
+  //   }
+  //   catch (error)
+  //   {
+  //     if (error.message === "Phone number already exists") {
+  //       try {
+  //         await saveItemDetail(rows);
+  //         showNotification("success", "Success", "Invoice saved successfully!");
+  //         handleReset();
+  //       } catch (err) {
+  //         showNotification("error", "Error", "Failed to save item details.");
+  //       }
+  //     } else {
+  //       showNotification("error", "Error", "Failed to save invoice.");
+  //     }
+  //   }
+  // }
+
   const countryCodes = [{ label: "India (+91)", value: "+91" }];
 
   return (
@@ -345,7 +498,23 @@ export default function PrintInvoice() {
             </span>
           </div>
         </div>
-
+        {activeTab === "Item Details" && (
+          <div className="flex items-center justify-right gap-2 mt-3">
+            <input
+              type="checkbox"
+              id="gstToggle"
+              checked={includeGST}
+              onChange={(e) => setIncludeGST(e.target.checked)}
+              className="w-5 h-5 cursor-pointer accent-gray-600"
+            />
+            <label
+              htmlFor="gstToggle"
+              className="text-md font-medium text-gray-700 cursor-pointer"
+            >
+              GST
+            </label>
+          </div>
+        )}
         {/* Customer Details Tab */}
         {activeTab === "Customer Details" && (
           <div key="customer" className="flex flex-col gap-6">
@@ -643,7 +812,10 @@ export default function PrintInvoice() {
 
         {/* Item Details Tab */}
         {activeTab === "Item Details" && (
-          <div key="item" className="flex flex-col gap-6 overflow-x-auto overflow-y-auto max-h-[70vh]">
+          <div
+            key="item"
+            className="flex flex-col gap-6 overflow-x-auto overflow-y-auto max-h-[70vh]"
+          >
             <table className="w-full text-sm min-w-[900px]">
               <thead>
                 <tr className="text-gray-600">
@@ -813,10 +985,10 @@ export default function PrintInvoice() {
               >
                 Reset
               </button>
-              
+
               <button
                 type="submit"
-                onClick={handleSubmitItemDetail}
+                onClick={handlePrintInvoice}
                 className="text-white text-sm hover:shadow-xl shadow-gray-700 font-semibold px-4 py-2 rounded-full border border-white/40 bg-gradient-to-r from-gray-600 to-gray-700 hover:from-gray-700 hover:to-gray-800 transition-all duration-200"
               >
                 Print Invoice

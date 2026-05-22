@@ -54,11 +54,7 @@ export default function LoginPage({ setMode, setIsLoggedIn }) {
       setLoginStatus("Invalid Password");
     }
     else if (logInResponse.message === "Login successfull") {
-      if (logInResponse.name) {
-        localStorage.setItem("userName", logInResponse.name);
-      } else {
-        console.error("Name not found in response:", logInResponse);
-      }
+      
       setIsLoggedIn(true);
       navigate("/main/printinvoice");
     }
