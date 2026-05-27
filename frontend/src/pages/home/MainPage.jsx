@@ -1,4 +1,5 @@
 import React, { useEffect } from "react";
+import {GoldRateContext} from "../../context/GoldRateContext";
 import { NavLink, Outlet } from "react-router-dom";
 import { useNavigate } from "react-router-dom";
 import { useState } from "react";
@@ -22,7 +23,8 @@ import InvoicePdf from "../../shared/component/InvoicePdf";
 export default function MainPage({ setIsLoggedIn }) {
   const navigate = useNavigate();
   const todayDate = () => {
-    return new Date().toISOString().split("T")[0];
+    const today= new Date().toISOString().split("T")[0];
+    return today;
   };
 
   // const [showDropdown, setShowDropdown] = useState(false);
@@ -95,6 +97,7 @@ export default function MainPage({ setIsLoggedIn }) {
             ? new Date(latestGoldRate.rate_date).toLocaleDateString("en-CA")
             : todayDate(),
         });
+        
       } catch (error) {
         console.error("Error fetching gold rate:", error);
       }
@@ -149,13 +152,18 @@ export default function MainPage({ setIsLoggedIn }) {
     }
 
     try {
-      await setGoldRateApi(goldRateData);
-      setShowSettings(false);
+    await setGoldRateApi({
+      ...goldRateData,
+      rateDate: goldRateData.rateDate || todayDate(),
+    });
+    setShowSettings(false);
     } catch (error) {
       console.error("Error setting gold rate:", error);
     }
+    setShowSettings(false);
   };
 
+  
   const handlefetchGoldRateByDate = async (date) => {
     try {
       const goldRate = await getGoldRateByDateApi(date);
@@ -168,6 +176,7 @@ export default function MainPage({ setIsLoggedIn }) {
           rateDate: date,
         });
       }
+      
     } catch (error) {
       setGoldRateData((prev) => ({
         ...prev,
@@ -176,13 +185,11 @@ export default function MainPage({ setIsLoggedIn }) {
         goldRate18K: "",
         goldRate14K: "",
       }));
-      showNotification(
-        "error",
-        "Not Found",
-        "No gold rate found for the selected date.",
-      );
+      
     }
+    
   };
+
   const [showUpdateInvoice, setShowUpdateInvoice] = useState(false);
 
   const handlePrintDuplicate = async () => {
@@ -373,7 +380,7 @@ export default function MainPage({ setIsLoggedIn }) {
   };
 
   return (
-    <>
+    <GoldRateContext.Provider value = {goldRateData}>
       <div className="min-h-screen  overflow-x-hidden">
         <NotificationModal
           isOpen={notification.isOpen}
@@ -846,7 +853,7 @@ export default function MainPage({ setIsLoggedIn }) {
               <div className="flex items-center justify-between mb-5">
                 <input
                   type="date"
-                  value={goldRateData.rateDate || todayDate()}
+                value={goldRateData.rateDate}
                   onChange={(e) => {
                     handleGoldRateChange(e);
                     handlefetchGoldRateByDate(e.target.value);
@@ -854,25 +861,7 @@ export default function MainPage({ setIsLoggedIn }) {
                   name="rateDate"
                   className="text-md font-bold text-gray-700 border-none bg-transparent focus:ring-0"
                 />
-                <button
-                  onClick={() => setShowSettings(false)}
-                  className="text-gray-500 hover:text-gray-700 transition-colors"
-                >
-                  <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    className="h-5 w-5"
-                    fill="none"
-                    viewBox="0 0 24 24"
-                    stroke="currentColor"
-                    strokeWidth={2}
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      d="M6 18L18 6M6 6l12 12"
-                    />
-                  </svg>
-                </button>
+                
               </div>
 
               {/* Gold Rate Input */}
@@ -987,7 +976,7 @@ export default function MainPage({ setIsLoggedIn }) {
                 Helping businesses grow through technology and marketing.
               </p>
               <p className="text-sm font-bold text-white leading-tight">
-                Software · Web Development · Digital Marketing
+                Software · Digital Marketing
               </p>
             </div>
           </div>
@@ -1016,6 +1005,6 @@ export default function MainPage({ setIsLoggedIn }) {
           </div>
         </footer>
       </div>
-    </>
+    </GoldRateContext.Provider>
   );
 }

@@ -49,7 +49,7 @@ const pdfStyles = StyleSheet.create({
   },
 
 colItemCode:        { width: "8%"   },  // same
-colItemDescription: { width: "16%"  },  // same
+colItemDescription: { width: "17%"  },  // same
 colDate:            { width: "7.5%" },  // 5.85 → 7.5  (2 cols = 15%)
 colBool:            { width: "4.5%" },  // 5.85 → 4.5  (2 cols = 9%)
 colNumber:          { width: "5.5%" },  // 5.85 → 5.5  (8 cols = 44%)

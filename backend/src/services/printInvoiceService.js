@@ -76,7 +76,7 @@ exports.updateCustomerDetail = async (customerData) => {
 
 exports.getProductByItemCode = async (itemCode) => {
   const result = await Pool.query(
-    `SELECT item_description, hsn_code, gross_weight, stone_weight, 
+    `SELECT item_description, hsn_code, net_weight, stone_weight, 
                 moti_weight, diamond_weight, solitaire_weight, color_stone, colouring, minna_weight
          FROM productdetail 
          WHERE item_code = $1 AND is_deleted = false AND is_sold = false`,
@@ -87,7 +87,7 @@ exports.getProductByItemCode = async (itemCode) => {
   if (!product) return null;
 
   const weightFields = [
-    { key: "gross_weight", label: product.item_description },
+    { key: "net_weight", label: product.item_description },
     { key: "stone_weight", label: "STONES" },
     { key: "moti_weight", label: "MOTI" },
     { key: "diamond_weight", label: "DIAMOND" },
@@ -102,7 +102,7 @@ exports.getProductByItemCode = async (itemCode) => {
     .map((field) => ({
       item_description: field.label,
       hsn_code: product.hsn_code,
-      gross_weight: product[field.key],
+      net_weight: product[field.key],
     }));
 };
 

@@ -79,7 +79,7 @@ export default function Report() {
         return;
     }
     exportToExcel(stockData, totalSum, dateRange.fromDate, dateRange.toDate);
-    showNotification("success", "Success", "Excel downloaded successfully!");
+    // showNotification("success", "Success", "Excel downloaded successfully!");
 };
 
   const handleGenerateReport = async () => {
@@ -119,7 +119,7 @@ export default function Report() {
       );
     }
 
-    showNotification("success", "Success", "Report generated successfully!");
+    // showNotification("success", "Success", "Report generated successfully!");
   };
 
   const handleDownloadPdf = async () => {
@@ -143,7 +143,7 @@ export default function Report() {
       link.click();
       URL.revokeObjectURL(url);
 
-      showNotification("success", "Success", "PDF downloaded successfully!");
+      // showNotification("success", "Success", "PDF downloaded successfully!");
     } catch (err) {
       console.error(err);
       showNotification("error", "Error", "Failed to generate PDF.");
@@ -159,10 +159,10 @@ export default function Report() {
         title={notification.title}
         message={notification.message}
       />
-      <div className="bg-gray-200 shadow-lg shadow-gray-600 backdrop-blur-md border border-gray-400 rounded-2xl p-6 md:max-w-7xl mx-auto">
-        <div key="stock" className="flex flex-col gap-6">
+      <div className="flex-1 bg-gray-200 shadow-lg shadow-gray-600 backdrop-blur-md border border-gray-400 rounded-2xl p-6 w-full mx-auto">
+        <div key="stock" className=" flex flex-col gap-6">
           {/* Date Range Filter */}
-          <div className="flex flex-wrap gap-4 items-end justify-center">
+          <div className=" flex flex-wrap gap-4 items-end justify-center">
             <div className="relative">
               <input
                 type="date"

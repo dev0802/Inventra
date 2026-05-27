@@ -86,7 +86,7 @@ export default function AddProduct() {
       setProductData((prev) => ({ ...prev, itemDescription: saved }));
       setNewItemData({ itemDescription: "", goldPurity: "", silverPurity: "", diamondPurity: "" });
       setShowPopup(false);
-      showNotification("success", "Item Description Added", `"${saved}" has been added successfully.`);
+      // showNotification("success", "Item Description Added", `"${saved}" has been added successfully.`);
     } catch (error) {
       console.error("Failed to add item description:", error);
       setItemDescriptions((prev) => [...prev, fullDescription]);
@@ -176,7 +176,7 @@ export default function AddProduct() {
 
   const handleReset = () => {
     setProductData({
-      itemDescription: "",
+      // itemDescription: "",
       hsnCode: "7113",
       grossWeight: "",
       stoneWeight: "",

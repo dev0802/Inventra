@@ -8,7 +8,6 @@ import {
   Image,
   Svg,
   Path,
-  
 } from "@react-pdf/renderer";
 import logo from "../../assets/images/pdf-logo.jpeg";
 
@@ -23,33 +22,32 @@ const S = StyleSheet.create({
   },
 
   /* ── HEADER ── */
-  headerBand: {
-    backgroundColor: "#C8991A",
-    flexDirection: "row",
-    alignItems: "center",
+  // Purana style hatao, naya daalo:
+  headerLeft: {
+    width: 60,
+    backgroundColor: "#fff",
     paddingVertical: 6,
     paddingHorizontal: 7,
-    // ✅ Top line
-    borderTop: "2pt solid #ffd66e",
-    // ✅ Bottom line
-    borderBottom: "2pt solid #ffd66e",
-    marginBottom: 5,
-  },
-  logoCircle: {
-    width: 38,
-    height: 38,
-    // backgroundColor: "#fff",
     justifyContent: "center",
     alignItems: "center",
-    marginRight: 10,
+    borderTop: "2pt solid #C8991A",
+    borderBottom: "2pt solid #C8991A",
+  },
+  headerRight: {
+    flex: 1,
+    backgroundColor: "#C8991A",
+    borderTop: "2pt solid #C8991A",
+    borderBottom: "2pt solid #C8991A",
+    justifyContent: "center",
+    alignItems: "center",
+    paddingVertical: 6,
   },
   shopName: {
-    flex: 1,
-    textAlign: "center",
     fontSize: 26,
     fontFamily: "Helvetica-Bold",
     color: "#f03521",
     letterSpacing: 1,
+    textAlign: "center",
   },
 
   /* ── SUB-HEADER ── */
@@ -296,11 +294,16 @@ export default function InvoicePdf({
     <Document>
       <Page size="A4" style={S.page}>
         {/* ── HEADER BAND ── */}
-        <View style={S.headerBand}>
-          <View style={S.logoCircle}>
-            <Image src={logo} style={{ width: 50, height: 50 }} />
+        <View style={{ flexDirection: "row", marginBottom: 5 }}>
+          {/* Left - Logo only, white bg */}
+          <View style={S.headerLeft}>
+            <Image src={logo} style={{ width: 40  , height: 40 }} />
           </View>
-          <Text style={S.shopName}>MANA JEWELLERS</Text>
+
+          {/* Right - Golden bg, red text, golden borders top/bottom */}
+          <View style={S.headerRight}>
+            <Text style={S.shopName}>MANA JEWELLERS</Text>
+          </View>
         </View>
 
         {/* ── SUB-HEADER ── */}
@@ -369,12 +372,11 @@ export default function InvoicePdf({
             <Text style={[S.th, S.cHsn, S.bl]}>HSN{"\n"}Code</Text>
             <Text style={[S.th, S.cQty, S.bl]}>Quantity</Text>
             <Text style={[S.th, S.cRate, S.bl]}>Rate</Text>
-            <Text style={[S.th, S.cMakePct, S.bl]}>Making{"\n"}Charges %</Text>
-            <Text style={[S.th, S.cMakeAmt, S.bl]}>Making{"\n"}Charges Rs</Text>
+            <Text style={[S.th, S.cMakePct, S.bl]}>Making{"\n"} %</Text>
+            <Text style={[S.th, S.cMakeAmt, S.bl]}>Charges{"\n"} Rs</Text>
             <Text style={[S.th, S.cAmt, S.bl]}>Amount (Rs)</Text>
           </View>
 
-          {/* ✅ data rows — no border lines, plain white */}
           {computed.map((row, idx) => {
             const isMain = row.unit_price === true || row.unit_price === "true";
             if (isMain) snoCounter++;
@@ -405,14 +407,26 @@ export default function InvoicePdf({
         </View>
 
         {/* ── TOTALS ── */}
-        <View style={S.totalsWrap}>
-          <View>
-            <Text>
-              <Text style={S.goldWtBold}>Total Gold Wt</Text>
-              {"    "}
+        <View
+          style={{
+            flexDirection: "row",
+            justifyContent: "space-between",
+            alignItems: "flex-start",
+            paddingHorizontal: 4,
+            marginTop: 4,
+          }}
+        >
+          <View style={{ flexDirection: "row", alignItems: "center" }}>
+            <Text style={{ width: 262 }}></Text>
+
+            <Text style={{ fontSize: 8.5 }}>
+              <Text style={{ fontFamily: "Helvetica-Bold" }}>
+                Total Gold Wt{"    "}
+              </Text>
               {totalGoldWt.toFixed(3)} Gms.
             </Text>
           </View>
+
           <View style={S.taxBlock}>
             {cgstRate > 0 && (
               <View style={S.taxLine}>

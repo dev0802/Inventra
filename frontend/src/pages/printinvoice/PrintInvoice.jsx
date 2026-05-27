@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
   customerDetail,
   getCustomerByPhone,
@@ -7,13 +7,82 @@ import {
   saveItemDetail,
   saveInvoice,
 } from "../../services/api/printinvoice/printInvoiceApi";
+import { getGoldRateByDateApi } from "../../services/api/goldrate/goldRateApi";
 import { pdf } from "@react-pdf/renderer";
 import InvoicePdf from "../../shared/component/InvoicePdf";
-
+import { useGoldRate } from "../../context/GoldRateContext";
 import NotificationModal from "../../shared/utilis/notificationModal";
-
+const karatOptions = [
+  { label: "24kt", value: "24K", key: "goldRate24K" },
+  { label: "22kt", value: "22K", key: "goldRate22K" },
+  { label: "18kt", value: "18K", key: "goldRate18K" },
+  { label: "14kt", value: "14K", key: "goldRate14K" },
+];
 export default function PrintInvoice() {
   const [includeGST, setIncludeGST] = useState(true);
+  const getDistrictStateByPincode = async (pinCode) => {
+  if (!pinCode || pinCode.length !== 6) return; // ← sirf 6 digit pe hi call karo
+  
+  try {
+    const url = `https://pincode.apitier.com/v1/in/places/pincode?x-api-key={api_key}&pincode-${pinCode}`; // ← direct hardcode karo test ke liye
+    const response = await fetch(url, {
+      method: "GET",
+      headers: { Accept: "application/json" },
+    });
+    
+    if (!response.ok) throw new Error("API failed");
+    
+    const data = await response.json();
+    
+    if (data[0]?.Status === "Success" && data[0]?.PostOffice?.length > 0) {
+      const postOffice = data[0].PostOffice[0];
+      setCustomerData((prev) => ({
+        ...prev,
+        district: postOffice.District || "",
+        state: postOffice.State || "",
+      }));
+    } else {
+      showNotification("error", "Error", "Invalid PIN Code!");
+    }
+  } catch (error) {
+    console.error("Pincode fetch error:", error);
+    // ← Error notification hatao ya silent fail karo
+    // showNotification("error", "Error", "Failed to fetch district and state!");
+  }
+};
+
+  const goldRateData = useGoldRate();
+
+  const [selectedKarat, setSelectedKarat] = useState("24K");
+
+  const handleFetchGoldRateByDate = async (date) => {
+    try {
+      const goldRate = await getGoldRateByDateApi(date);
+      if (goldRate) {
+        const karat = karatOptions.find((k) => k.value === selectedKarat);
+        const rateKey = karat?.key;
+        const newRate =
+          goldRate[rateKey.replace("goldRate", "gold_rate_").toLowerCase()] ||
+          "";
+        setRows((prev) => prev.map((row) => (row.unitPrice ? { ...row, rate: newRate } : row)));
+      }
+    } catch (error) {
+      showNotification(
+        "error",
+        "Not Found",
+        "No gold rate found for the selected date.",
+      );
+    }
+  };
+  useEffect(() => {
+    const getSelectedRate = () => {
+      const karat = karatOptions.find((k) => k.value === selectedKarat);
+      return goldRateData?.[karat?.key] || "";
+    };
+
+    const rate = getSelectedRate();
+    setRows((prev) => prev.map((row) => (row.unitPrice ? { ...row, rate } : row)));
+  }, [selectedKarat, goldRateData]);
 
   const handlePrintInvoice = async () => {
     if (!customerData.customerName.trim())
@@ -90,7 +159,7 @@ export default function PrintInvoice() {
       link.click();
       document.body.removeChild(link);
 
-      showNotification("success", "Success", "Invoice saved successfully!");
+      // showNotification("success", "Success", "Invoice saved successfully!");
       handleReset();
     } catch (err) {
       console.error("Invoice error at unknown step:", err);
@@ -128,8 +197,6 @@ export default function PrintInvoice() {
     customerGstin: "",
   });
 
-  const goldRate = localStorage.getItem("goldRate");
-
   const [rows, setRows] = useState([
     {
       id: 1,
@@ -138,7 +205,7 @@ export default function PrintInvoice() {
       hsnCode: "",
       quantity: "",
       unit: "Gms.",
-      rate: goldRate,
+      rate: goldRateData?.goldRate24K || "",
       unitPrice: true,
       makingCharges: "10",
     },
@@ -216,7 +283,7 @@ export default function PrintInvoice() {
         hsnCode: "",
         quantity: "",
         unit: "Gms.",
-        rate: goldRate,
+        rate: goldRateData?.goldRate24K || "",
         unitPrice: true,
         makingCharges: "10",
       },
@@ -250,22 +317,6 @@ export default function PrintInvoice() {
         showNotification("error", "Error", "Failed to save customer details.");
       }
     }
-    setCustomerData({
-      customerName: "",
-      birthday: todayDate(),
-      anniversary: todayDate(),
-      phone1Country: "+91",
-      phone1: "",
-      phone2Country: "+91",
-      phone2: "",
-      pinCode: "",
-      vpo: "",
-      district: "",
-      state: "",
-      email: "",
-      gstin: "03ASRPS4951M1ZO",
-      customerGstin: "",
-    });
   };
 
   const formatDate = (dateStr) => {
@@ -377,7 +428,7 @@ export default function PrintInvoice() {
                   }),
               itemDescription: item.item_description,
               hsnCode: item.hsn_code,
-              quantity: item.gross_weight,
+              quantity: item.net_weight,
               unitPrice: i === 0 ? true : false,
               unit: isDiamondOrSolitaire
                 ? "Ct."
@@ -505,14 +556,38 @@ export default function PrintInvoice() {
               id="gstToggle"
               checked={includeGST}
               onChange={(e) => setIncludeGST(e.target.checked)}
-              className="w-5 h-5 cursor-pointer accent-gray-600"
+              className="w-5 h-5 cursor-pointer accent-gray-600 mb-1"
             />
             <label
               htmlFor="gstToggle"
-              className="text-md font-medium text-gray-700 cursor-pointer"
+              className="text-md font-medium text-gray-700 cursor-pointer mb-1"
             >
               GST
             </label>
+            <div className="flex items-center gap-2 mb-1">
+              <input
+                type="date"
+                value={goldRateData?.rateDate}
+                onChange={(e) => handleFetchGoldRateByDate(e.target.value)}
+                className="text-sm font-semibold text-gray-700 border border-gray-400 rounded-md px-3 py-1 bg-gray-100 focus:outline-none cursor-pointer"
+              />
+            </div>
+            <div className="flex items-center justify-end gap-2 mb-1">
+              <label className="text-md font-medium text-gray-700">
+                Gold Rate
+              </label>
+              <select
+                value={selectedKarat}
+                onChange={(e) => setSelectedKarat(e.target.value)}
+                className="border border-gray-500 rounded-md px-2 py-1 bg-gray-200 focus:outline-none text-sm"
+              >
+                {karatOptions.map((k) => (
+                  <option key={k.value} value={k.value}>
+                    {k.label} — ₹{goldRateData?.[k.key] || "N/A"}
+                  </option>
+                ))}
+              </select>
+            </div>
           </div>
         )}
         {/* Customer Details Tab */}
@@ -658,6 +733,7 @@ export default function PrintInvoice() {
                   name="pinCode"
                   value={customerData.pinCode}
                   onChange={handleChange}
+                  onBlur={() => getDistrictStateByPincode(customerData.pinCode)}
                   maxLength="6"
                   placeholder=" "
                   className="peer w-full focus:shadow-md border border-gray-500 rounded-md px-3 py-2 bg-gray-200 focus:border-gray-500 focus:outline-none"
