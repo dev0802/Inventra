@@ -67,9 +67,6 @@ export default function ViewProduct() {
     setNotification((prev) => ({ ...prev, isOpen: false }));
   };
 
-  // ─── Checkbox Handlers ───────────────────────────────────────────────────────
-
-  // Single checkbox toggle karo
   const toggleSelect = (id) => {
     setSelectedIds(
       (prev) =>
@@ -79,16 +76,14 @@ export default function ViewProduct() {
     );
   };
 
-  // Header "select all" checkbox
   const toggleAll = () => {
     if (selectedIds.length === loadProducts.length) {
-      setSelectedIds([]); // sab selected → sab hatao
+      setSelectedIds([]);
     } else {
       setSelectedIds(loadProducts.map((p) => p.product_id)); // kuch selected → sab lo
     }
   };
 
-  // Jo products selected hain unhe filter karo — label popup ke liye
   const selectedProducts = loadProducts.filter((p) =>
     selectedIds.includes(p.product_id),
   );
@@ -145,16 +140,14 @@ export default function ViewProduct() {
   `);
     printWindow.document.close();
   };
-
-  // ─── Existing Handlers (unchanged) ──────────────────────────────────────────
   const handleFilter = (e) => {
     setFilters({ ...filters, [e.target.name]: e.target.value });
   };
 
   const handleReset = () => {
     setFilters({
-      startDate: "",
-      endDate: "",
+      startDate: todayDate,
+      endDate: todayDate,
       itemDescription: "",
       itemCode: "",
       viewBy: "All",

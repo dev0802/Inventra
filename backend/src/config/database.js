@@ -9,10 +9,6 @@ const pool = new Pool({
   port: process.env.DB_PORT,
 });
 
-// ═══════════════════════════════════════════════════════
-// TABLE CREATION
-// ═══════════════════════════════════════════════════════
-
 const adminTable = async (client) => {
   await client.query(`
     CREATE TABLE IF NOT EXISTS admin (

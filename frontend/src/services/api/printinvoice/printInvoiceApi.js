@@ -62,9 +62,6 @@ export const saveItemDetail = async (rows) => {
     return response.json();
 }
 
-// ── Save Invoice ───────────────────────────────────────────
-// Frontend bhejta hai: { customer_id, group_code, invoice_date }
-// invoice_number nahi bhejta — backend khud calculate karta hai
 export const saveInvoice = async ({ customer_id, group_code, invoice_date }) => {
     const response = await fetch(`${process.env.REACT_APP_API_SAVE_INVOICE}`, {
         method: 'POST',

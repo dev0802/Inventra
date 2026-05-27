@@ -259,6 +259,7 @@ export default function InvoicePdf({
     rate: row.rate || "",
     makingCharges: row.making_charges || row.makingCharges || "",
     is_main_item: row.is_main_item,
+    unitPrice: row.unitPrice ?? row.unit_price,
   }));
 
   // ── compute amounts ──
@@ -268,8 +269,8 @@ export default function InvoicePdf({
     const baseAmt = qty * rate;
     const makingPct = parseFloat(row.makingCharges) || 0;
     const makingAmt =
-      row.unit === "Gms." ? Math.round((baseAmt * makingPct) / 100) : 0;
-    const lineTotal = row.unit === "Ct." ? baseAmt : baseAmt + makingAmt;
+      row.unit === "Gms." && row.unitPrice === true && makingPct !== 0 ? Math.round((baseAmt * makingPct) / 100) : null;
+    const lineTotal = row.unit === "Ct." || row.unitPrice !== true ? rate : baseAmt + makingAmt;
     return { ...row, baseAmt, makingAmt, lineTotal };
   });
 
@@ -281,7 +282,7 @@ export default function InvoicePdf({
   const totalGoldWt = normalizedRows
     .filter(
       (r) =>
-        r.unit === "Gms." && r.is_main_item !== false && r.unit_price !== false,
+        r.unit === "Gms." && r.is_main_item !== false && r.unitPrice !== false,
     )
     .reduce((s, r) => s + (parseFloat(r.quantity) || 0), 0);
 
@@ -378,7 +379,11 @@ export default function InvoicePdf({
           </View>
 
           {computed.map((row, idx) => {
-            const isMain = row.unit_price === true || row.unit_price === "true";
+            const isMain = !isNaN(Number(row.code)) && 
+               row.code !== "" && 
+               row.code !== null &&
+               row.code !== undefined;
+            
             if (isMain) snoCounter++;
             return (
               <View

@@ -107,6 +107,10 @@ exports.getProductByItemCode = async (itemCode) => {
 };
 
 exports.saveItemDetail = async (rows) => {
+
+  
+   console.log("RECEIVED ROWS:", JSON.stringify(rows, null, 2));
+  console.log("ROWS COUNT:", rows.length);
   const lastItem = await Pool.query(
     "SELECT group_code FROM itemdetail ORDER BY item_id DESC LIMIT 1",
   );
@@ -116,7 +120,7 @@ exports.saveItemDetail = async (rows) => {
 
   const groups = [];
   let currentGroup = [];
-
+  const allGroupCode = [];
   rows.forEach((row) => {
     if (row.itemCode) {
       if (currentGroup.length > 0) groups.push(currentGroup);
@@ -129,7 +133,7 @@ exports.saveItemDetail = async (rows) => {
 
   for (const group of groups) {
     groupCode += 1;
-
+    allGroupCode.push(groupCode);
     const itemCode = group[0].itemCode;
     if (itemCode) {
       const today = new Date().toISOString().split('T')[0];
@@ -159,7 +163,7 @@ exports.saveItemDetail = async (rows) => {
     }
   }
 
-  return { message: "Items saved successfully", groupCode };
+  return { message: "Items saved successfully", groupCode, allGroupCode };
 };
 
 exports.getFinancialYear = (date = new Date()) => {
@@ -184,6 +188,7 @@ exports.getNextInvoiceNumber = async (financial_year) => {
 };
 
 exports.saveInvoice = async ({ customer_id, group_code, invoice_date }) => {
+
   const custResult = await Pool.query(
     `SELECT
         customer_name, phone_no1, phone_no2, email, address, address_district, address_state, address_pincode
@@ -214,7 +219,7 @@ exports.saveInvoice = async ({ customer_id, group_code, invoice_date }) => {
     `SELECT
         item_description, code, group_code, hsn_code, quantity, rate, unit_price, making_charges
         FROM itemdetail
-        WHERE group_code = $1
+        WHERE group_code = ANY($1::int[])
         ORDER BY item_id ASC`,
     [group_code],
   );
@@ -223,11 +228,12 @@ exports.saveInvoice = async ({ customer_id, group_code, invoice_date }) => {
     throw new Error("Items Not Found");
   }
 
+  
   const items = itemsResult.rows.map((row, idx) => {
     const baseAmt = row.rate
       ? parseFloat(row.quantity) * parseFloat(row.rate)
       : 0;
-
+// const isMainItem = JSON.parse(String(row.unit_price));
     return {
       item_description: row.item_description,
       hsn_code: row.hsn_code,
@@ -236,15 +242,18 @@ exports.saveInvoice = async ({ customer_id, group_code, invoice_date }) => {
       unit_price: row.unit_price,
       making_charges: row.making_charges || null,
       code: row.code || "",
-      item_code: row.code || "",
+      item_code: row.item_code || "",
       making_charges_amount:
         row.rate && row.making_charges
           ? Math.round((baseAmt * parseFloat(row.making_charges)) / 100)
           : null,
       amount: Math.round(baseAmt),
-      is_main_item: idx === 0,
-    };
+        is_main_item: !isNaN(Number(row.code)) && row.code !== "",
+      };
+      console.log("isNaN check:", isNaN(Number(row.code)));
+      console.log("CODE VALUE:", row.code, "TYPE:", typeof row.code);
   });
+  console.log("Items Data:", JSON.stringify(items, null, 2));
 
   const totalAmount = items.reduce((sum, item) => {
     return item.is_main_item ? sum + (parseFloat(item.amount) || 0) : sum;

@@ -21,10 +21,10 @@ const karatOptions = [
 export default function PrintInvoice() {
   const [includeGST, setIncludeGST] = useState(true);
   const getDistrictStateByPincode = async (pinCode) => {
-  if (!pinCode || pinCode.length !== 6) return; // ← sirf 6 digit pe hi call karo
+  if (!pinCode || pinCode.length !== 6) return;
   
   try {
-    const url = `https://pincode.apitier.com/v1/in/places/pincode?x-api-key={api_key}&pincode-${pinCode}`; // ← direct hardcode karo test ke liye
+    const url = `https://pincode.apitier.com/v1/in/places/pincode?x-api-key={api_key}&pincode-${pinCode}`;
     const response = await fetch(url, {
       method: "GET",
       headers: { Accept: "application/json" },
@@ -46,8 +46,7 @@ export default function PrintInvoice() {
     }
   } catch (error) {
     console.error("Pincode fetch error:", error);
-    // ← Error notification hatao ya silent fail karo
-    // showNotification("error", "Error", "Failed to fetch district and state!");
+    
   }
 };
 
@@ -113,10 +112,10 @@ export default function PrintInvoice() {
         if (error.message !== "Phone number already exists")
           return showNotification("error", "Error", "Failed to save customer.");
       }
-
+      console.log("ROWS BEFORE SAVE:", JSON.stringify(rows, null, 2));
       const itemResult = await saveItemDetail(rows);
       console.log("Step 2: Items saved:", itemResult);
-      const group_code = itemResult.groupCode;
+      const group_code = itemResult.allGroupCode;
       console.log("Step 2b: group_code:", group_code);
 
       const customerResult = await getCustomerByPhone(
@@ -149,6 +148,7 @@ export default function PrintInvoice() {
           sgstRate={includeGST ? 1.5 : 0}
         />,
       ).toBlob();
+      console.log("ROWS DATA:", JSON.stringify(rows, null, 2));
       console.log("Step 6: PDF blob created");
 
       const url = URL.createObjectURL(blob);
@@ -159,7 +159,6 @@ export default function PrintInvoice() {
       link.click();
       document.body.removeChild(link);
 
-      // showNotification("success", "Success", "Invoice saved successfully!");
       handleReset();
     } catch (err) {
       console.error("Invoice error at unknown step:", err);
@@ -229,9 +228,9 @@ export default function PrintInvoice() {
         hsnCode: "",
         quantity: "",
         unit: "Gms.",
-        rate: "",
-        unitPrice: false,
-        makingCharges: "",
+        rate: goldRateData?.goldRate24K || " ",
+        unitPrice: true,
+        makingCharges: "10",
       },
     ]);
   };
@@ -301,6 +300,18 @@ export default function PrintInvoice() {
     }
     if (!customerData.birthday) {
       showNotification("error", "Error", "Birthday is required!");
+      return;
+    }
+    if(!customerData.pinCode.trim()){
+      showNotification("error", "Error", "PIN Code is required!");
+      return;
+    }
+    if(!customerData.state.trim()){
+      showNotification("error", "Error", "State is required!");
+      return;
+    }
+    if(!customerData.district.trim()){
+      showNotification("error", "Error", "District is required!");
       return;
     }
     try {
@@ -442,6 +453,9 @@ export default function PrintInvoice() {
             const otherRows = prev.filter((row) => row.id !== rowId);
             return [...otherRows, ...newRows];
           });
+          // if(unitPrice: true) {
+          //   setRows((prev) => prev.map(row => row.id === rowId ? { ...row, rate: goldRateData?.goldRate24K || "" } : row));
+          // }
         } else {
           showNotification(
             "error",
@@ -525,7 +539,7 @@ export default function PrintInvoice() {
         title={notification.title}
         message={notification.message}
       />
-      <div className="bg-gray-200 shadow-lg shadow-gray-600 backdrop-blur-md border border-gray-400 rounded-2xl p-6 md:max-w-7xl mx-auto">
+      <div className="bg-gray-200 shadow-lg shadow-gray-600 backdrop-blur-md border border-gray-400 rounded-2xl p-6 w-full mx-auto">
         {/* Toggle Switch */}
         <div className="flex flex-col items-center mb-6">
           <div className="relative w-2/4 h-10 bg-gray-100 rounded-full cursor-pointer flex items-center">
@@ -550,7 +564,8 @@ export default function PrintInvoice() {
           </div>
         </div>
         {activeTab === "Item Details" && (
-          <div className="flex items-center justify-right gap-2 mt-3">
+          <div className="flex gap-4 justify-between">
+          <div className="flex items-center justify-left gap-2 mt-3">
             <input
               type="checkbox"
               id="gstToggle"
@@ -564,15 +579,15 @@ export default function PrintInvoice() {
             >
               GST
             </label>
-            <div className="flex items-center gap-2 mb-1">
+            <div className="flex items-center justify-right gap-2 mb-1">
               <input
                 type="date"
-                value={goldRateData?.rateDate}
+                value={todayDate()}
                 onChange={(e) => handleFetchGoldRateByDate(e.target.value)}
                 className="text-sm font-semibold text-gray-700 border border-gray-400 rounded-md px-3 py-1 bg-gray-100 focus:outline-none cursor-pointer"
               />
             </div>
-            <div className="flex items-center justify-end gap-2 mb-1">
+            <div className="flex items-center justify-right gap-2 mb-1">
               <label className="text-md font-medium text-gray-700">
                 Gold Rate
               </label>
@@ -588,6 +603,7 @@ export default function PrintInvoice() {
                 ))}
               </select>
             </div>
+          </div>
           </div>
         )}
         {/* Customer Details Tab */}
@@ -742,7 +758,7 @@ export default function PrintInvoice() {
                   htmlFor="pinCode"
                   className="absolute left-3 -top-3.5 bg-gray-200 px-1 text-gray-700 text-md pointer-events-none transition-all peer-placeholder-shown:text-base peer-placeholder-shown:text-gray-600 peer-placeholder-shown:top-2 peer-focus:-top-3.5 peer-focus:text-md peer-focus:text-gray-600"
                 >
-                  PIN Code
+                  PIN Code<span className="text-gray-500 ml-0.5">*</span>
                 </label>
               </div>
 
@@ -761,7 +777,7 @@ export default function PrintInvoice() {
                   htmlFor="vpo"
                   className="absolute left-3 -top-3.5 bg-gray-200 px-1 text-gray-700 text-md pointer-events-none transition-all peer-placeholder-shown:text-base peer-placeholder-shown:text-gray-600 peer-placeholder-shown:top-2 peer-focus:-top-3.5 peer-focus:text-md peer-focus:text-gray-600"
                 >
-                  VPO
+                  VPO<span className="text-gray-500 ml-0.5">*</span>
                 </label>
               </div>
 
@@ -780,7 +796,7 @@ export default function PrintInvoice() {
                   htmlFor="district"
                   className="absolute left-3 -top-3.5 bg-gray-200 px-1 text-gray-700 text-md pointer-events-none transition-all peer-placeholder-shown:text-base peer-placeholder-shown:text-gray-600 peer-placeholder-shown:top-2 peer-focus:-top-3.5 peer-focus:text-md peer-focus:text-gray-600"
                 >
-                  District
+                  District<span className="text-gray-500 ml-0.5">*</span>
                 </label>
               </div>
 
@@ -799,7 +815,7 @@ export default function PrintInvoice() {
                   htmlFor="state"
                   className="absolute left-3 -top-3.5 bg-gray-200 px-1 text-gray-700 text-md pointer-events-none transition-all peer-placeholder-shown:text-base peer-placeholder-shown:text-gray-600 peer-placeholder-shown:top-2 peer-focus:-top-3.5 peer-focus:text-md peer-focus:text-gray-600"
                 >
-                  State
+                  State<span className="text-gray-500 ml-0.5">*</span>
                 </label>
               </div>
             </div>
