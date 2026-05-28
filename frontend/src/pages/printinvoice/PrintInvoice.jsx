@@ -20,39 +20,21 @@ const karatOptions = [
 ];
 export default function PrintInvoice() {
   const [includeGST, setIncludeGST] = useState(true);
-  const getDistrictStateByPincode = async (pinCode) => {
-  if (!pinCode || pinCode.length !== 6) return;
-  
-  try {
-    const url = `https://pincode.apitier.com/v1/in/places/pincode?x-api-key={api_key}&pincode-${pinCode}`;
-    const response = await fetch(url, {
-      method: "GET",
-      headers: { Accept: "application/json" },
-    });
-    
-    if (!response.ok) throw new Error("API failed");
-    
-    const data = await response.json();
-    
-    if (data[0]?.Status === "Success" && data[0]?.PostOffice?.length > 0) {
-      const postOffice = data[0].PostOffice[0];
-      setCustomerData((prev) => ({
-        ...prev,
-        district: postOffice.District || "",
-        state: postOffice.State || "",
-      }));
-    } else {
-      showNotification("error", "Error", "Invalid PIN Code!");
-    }
-  } catch (error) {
-    console.error("Pincode fetch error:", error);
-    
-  }
-};
 
   const goldRateData = useGoldRate();
 
   const [selectedKarat, setSelectedKarat] = useState("24K");
+
+  const handleGoldRateByDecription = (description) => {
+    const desc = description.toLowerCase();
+    if (desc.includes("999")) return goldRateData?.goldRate24K || "";
+    if (desc.includes("916") || desc.includes("22"))
+      return goldRateData?.goldRate22K || "";
+    if (desc.includes("750") || desc.includes("18"))
+      return goldRateData?.goldRate18K || "";
+    if (desc.includes("585") || desc.includes("14"))
+      return goldRateData?.goldRate14K || "";
+  };
 
   const handleFetchGoldRateByDate = async (date) => {
     try {
@@ -63,7 +45,9 @@ export default function PrintInvoice() {
         const newRate =
           goldRate[rateKey.replace("goldRate", "gold_rate_").toLowerCase()] ||
           "";
-        setRows((prev) => prev.map((row) => (row.unitPrice ? { ...row, rate: newRate } : row)));
+        setRows((prev) =>
+          prev.map((row) => (row.unitPrice ? { ...row, rate: newRate } : row)),
+        );
       }
     } catch (error) {
       showNotification(
@@ -73,6 +57,7 @@ export default function PrintInvoice() {
       );
     }
   };
+
   useEffect(() => {
     const getSelectedRate = () => {
       const karat = karatOptions.find((k) => k.value === selectedKarat);
@@ -80,7 +65,9 @@ export default function PrintInvoice() {
     };
 
     const rate = getSelectedRate();
-    setRows((prev) => prev.map((row) => (row.unitPrice ? { ...row, rate } : row)));
+    setRows((prev) =>
+      prev.map((row) => (row.unitPrice ? { ...row, rate } : row)),
+    );
   }, [selectedKarat, goldRateData]);
 
   const handlePrintInvoice = async () => {
@@ -154,7 +141,8 @@ export default function PrintInvoice() {
       const url = URL.createObjectURL(blob);
       const link = document.createElement("a");
       link.href = url;
-      link.download = `Invoice-${saved.display_number || saved.display_number}.pdf`;
+      // link.download = `Invoice-${saved.display_number || saved.display_number}.pdf`;
+      link.target = "_blank";
       document.body.appendChild(link);
       link.click();
       document.body.removeChild(link);
@@ -165,6 +153,7 @@ export default function PrintInvoice() {
       showNotification("error", "Error", "Failed to generate invoice");
     }
   };
+  
   const todayDate = () => {
     const today = new Date();
     return today.toISOString().split("T")[0];
@@ -204,7 +193,7 @@ export default function PrintInvoice() {
       hsnCode: "",
       quantity: "",
       unit: "Gms.",
-      rate: goldRateData?.goldRate24K || "",
+      rate: "",
       unitPrice: true,
       makingCharges: "10",
     },
@@ -217,7 +206,36 @@ export default function PrintInvoice() {
   const closeNotification = () => {
     setNotification((prev) => ({ ...prev, isOpen: false }));
   };
+  const getDistrictStateByPincode = async (pinCode) => {
+    
+    if (!pinCode || pinCode.length !== 6) return;
 
+    try {
+      const url = `https://api.postalpincode.in/pincode/${pinCode}`;
+      console.log(url);
+      const response = await fetch(url, {
+        method: "GET",
+        headers: { Accept: "application/json" },
+      });
+
+      if (!response.ok) throw new Error("API failed");
+
+      const data = await response.json();
+
+      if (data[0]?.Status === "Success" && data[0]?.PostOffice?.length > 0) {
+        const postOffice = data[0].PostOffice.at(-1);
+        setCustomerData((prev) => ({
+          ...prev,
+          district: postOffice.District || "",
+          state: postOffice.State || "",
+        }));
+      } else {
+        showNotification("error", "Error", "Invalid PIN Code!");
+      }
+    } catch (error) {
+      console.error("Pincode fetch error:", error);
+    }
+  };
   const handleAddRow = () => {
     setRows((prev) => [
       ...prev,
@@ -228,7 +246,7 @@ export default function PrintInvoice() {
         hsnCode: "",
         quantity: "",
         unit: "Gms.",
-        rate: goldRateData?.goldRate24K || " ",
+        rate: "",
         unitPrice: true,
         makingCharges: "10",
       },
@@ -282,7 +300,7 @@ export default function PrintInvoice() {
         hsnCode: "",
         quantity: "",
         unit: "Gms.",
-        rate: goldRateData?.goldRate24K || "",
+        rate: "",
         unitPrice: true,
         makingCharges: "10",
       },
@@ -302,15 +320,15 @@ export default function PrintInvoice() {
       showNotification("error", "Error", "Birthday is required!");
       return;
     }
-    if(!customerData.pinCode.trim()){
+    if (!customerData.pinCode.trim()) {
       showNotification("error", "Error", "PIN Code is required!");
       return;
     }
-    if(!customerData.state.trim()){
+    if (!customerData.state.trim()) {
       showNotification("error", "Error", "State is required!");
       return;
     }
-    if(!customerData.district.trim()){
+    if (!customerData.district.trim()) {
       showNotification("error", "Error", "District is required!");
       return;
     }
@@ -427,6 +445,10 @@ export default function PrintInvoice() {
             const isDiamondOrSolitaire =
               desc.includes("diamond") || desc.includes("solitaire");
 
+            const goldRateByDescription = handleGoldRateByDecription(
+              item.item_description,
+            );
+
             return {
               ...(i === 0
                 ? currentRow
@@ -446,6 +468,7 @@ export default function PrintInvoice() {
                 : i === 0
                   ? currentRow.unit
                   : "Gms.",
+              rate: i === 0 ? goldRateByDescription : "",
             };
           });
 
@@ -453,9 +476,6 @@ export default function PrintInvoice() {
             const otherRows = prev.filter((row) => row.id !== rowId);
             return [...otherRows, ...newRows];
           });
-          // if(unitPrice: true) {
-          //   setRows((prev) => prev.map(row => row.id === rowId ? { ...row, rate: goldRateData?.goldRate24K || "" } : row));
-          // }
         } else {
           showNotification(
             "error",
@@ -468,65 +488,6 @@ export default function PrintInvoice() {
       }
     }
   };
-
-  // const handleSubmitItemDetail = async () => {
-  //   try {
-  //     const response = await saveItemDetail(rows);
-  //     if (response) {
-  //       showNotification("success", "Success", "Item details saved successfully!");
-  //     }
-  //   } catch (error) {
-  //     console.error("Error:", error);
-  //     showNotification("error", "Error", "Failed to save item details.");
-  //   }
-  // };
-
-  // const handlePrintInvoice = async() => {
-  //   if (!customerData.customerName.trim()) {
-  //   showNotification("error", "Error", "Customer Name is required!");
-  //   return;
-  // }
-  // if (!customerData.phone1.trim() || customerData.phone1.length < 10) {
-  //   showNotification("error", "Error", "Valid Phone Number is required!");
-  //   return;
-  // }
-  // if (!customerData.birthday) {
-  //   showNotification("error", "Error", "Birthday is required!");
-  //   return;
-  // }
-  // if(!customerData.pinCode.trim()){
-  //   showNotification("error", "Error", "PIN Code is required!");
-  //   return;
-  // }
-  // if(!customerData.state.trim()){
-  //   showNotification("error", "Error", "State is required!");
-  //   return;
-  // }
-  // if(!customerData.district.trim()){
-  //   showNotification("error", "Error", "District is required!");
-  //   return;
-  // }
-  // try {
-  //     await customerDetail(customerData);
-  //     await saveItemDetail(rows);
-  //     showNotification("success", "Success", "Invoice saved successfully!");
-  //     handleReset();
-  //   }
-  //   catch (error)
-  //   {
-  //     if (error.message === "Phone number already exists") {
-  //       try {
-  //         await saveItemDetail(rows);
-  //         showNotification("success", "Success", "Invoice saved successfully!");
-  //         handleReset();
-  //       } catch (err) {
-  //         showNotification("error", "Error", "Failed to save item details.");
-  //       }
-  //     } else {
-  //       showNotification("error", "Error", "Failed to save invoice.");
-  //     }
-  //   }
-  // }
 
   const countryCodes = [{ label: "India (+91)", value: "+91" }];
 
@@ -564,30 +525,32 @@ export default function PrintInvoice() {
           </div>
         </div>
         {activeTab === "Item Details" && (
-          <div className="flex gap-4 justify-between">
-          <div className="flex items-center justify-left gap-2 mt-3">
-            <input
-              type="checkbox"
-              id="gstToggle"
-              checked={includeGST}
-              onChange={(e) => setIncludeGST(e.target.checked)}
-              className="w-5 h-5 cursor-pointer accent-gray-600 mb-1"
-            />
-            <label
-              htmlFor="gstToggle"
-              className="text-md font-medium text-gray-700 cursor-pointer mb-1"
-            >
-              GST
-            </label>
-            <div className="flex items-center justify-right gap-2 mb-1">
+          <div className="flex items-center justify-between gap-4 mt-3">
+            {/* LEFT — GST */}
+            <div className="flex items-center gap-2">
+              <input
+                type="checkbox"
+                id="gstToggle"
+                checked={includeGST}
+                onChange={(e) => setIncludeGST(e.target.checked)}
+                className="w-5 h-5 cursor-pointer accent-gray-600"
+              />
+              <label
+                htmlFor="gstToggle"
+                className="text-md font-medium text-gray-700 cursor-pointer"
+              >
+                GST
+              </label>
+            </div>
+
+            {/* RIGHT — Date + Gold Rate */}
+            <div className="flex items-center gap-3">
               <input
                 type="date"
-                value={todayDate()}
+                value={goldRateData?.rateDate || "" || todayDate()}
                 onChange={(e) => handleFetchGoldRateByDate(e.target.value)}
                 className="text-sm font-semibold text-gray-700 border border-gray-400 rounded-md px-3 py-1 bg-gray-100 focus:outline-none cursor-pointer"
               />
-            </div>
-            <div className="flex items-center justify-right gap-2 mb-1">
               <label className="text-md font-medium text-gray-700">
                 Gold Rate
               </label>
@@ -603,7 +566,6 @@ export default function PrintInvoice() {
                 ))}
               </select>
             </div>
-          </div>
           </div>
         )}
         {/* Customer Details Tab */}

@@ -1,7 +1,6 @@
 import React, { useState, lazy, Suspense } from "react";
 import { Routes, Route } from "react-router-dom";
 
-// ✅ Lazy imports
 const AuthRoutes    = lazy(() => import("../pages/login/AuthRoutes"));
 const MainPage      = lazy(() => import("../pages/home/MainPage"));
 const AddProduct    = lazy(() => import("../pages/addproducts/AddProduct"));
@@ -9,7 +8,6 @@ const ViewProduct   = lazy(() => import("../pages/viewproducts/ViewProduct"));
 const PrintInvoice  = lazy(() => import("../pages/printinvoice/PrintInvoice"));
 const Report        = lazy(() => import("../pages/report/Report"));
 
-// ✅ Loading fallback component
 function PageLoader() {
   return (
     <div className="flex items-center justify-center min-h-screen">
@@ -24,7 +22,6 @@ export default function LayoutRoutes() {
   return (
     <div className="relative min-h-screen">
 
-      {/* ✅ Suspense wraps sab routes ko */}
       <Suspense fallback={<PageLoader />}>
         <Routes>
 

@@ -14,7 +14,6 @@ import logo from "../../assets/images/brandease_logo.png";
 import { logOut, verifySession } from "../../services/api/auth/authApi";
 import {
   getInvoiceByNumberAndFY,
-  getProductByItemCode,
   updateInvoice,
   deleteInvoice
 } from "../../services/api/printinvoice/printInvoiceApi";
@@ -246,45 +245,45 @@ export default function MainPage({ setIsLoggedIn }) {
   const handleSearchKeyDown = (e) => {
     if (e.key === "Enter") handleSearchInvoice();
   };
-  const handleUpdateItemCodeFetch = async (e, idx) => {
-    if (e.key === "Enter" && e.target.value) {
-      try {
-        const result = await getProductByItemCode(e.target.value);
-        if (result && result.length > 0) {
-          setFoundInvoice((prev) => {
-            const items = [...prev.items];
-            const currentItem = items[idx];
-            const newItems = result.map((item, i) => ({
-              ...(i === 0
-                ? currentItem
-                : {
-                    unit: "Gms.",
-                    rate: "",
-                    unit_price: false,
-                    making_charges: "",
-                  }),
-                  item_code: e.target.value,
-                  code: e.target_value,
-                  item_description: item.item_description,
-              hsn_code: item.hsn_code,
-              quantity: item.gross_weight,
-              unit_price: i === 0 ? true : false,
-            }));
-            items.splice(idx, 1, ...newItems);
-            return { ...prev, items };
-          });
-        } else {
-          showNotification(
-            "error",
-            "Error",
-            "This product is sold or deleted.",
-          );
-        }
-      } catch (error) {
-        console.error("Error:", error);
-      }
-    }
-  };
+  // const handleUpdateItemCodeFetch = async (e, idx) => {
+  //   if (e.key === "Enter" && e.target.value) {
+  //     try {
+  //       const result = await getProductByItemCode(e.target.value);
+  //       if (result && result.length > 0) {
+  //         setFoundInvoice((prev) => {
+  //           const items = [...prev.items];
+  //           const currentItem = items[idx];
+  //           const newItems = result.map((item, i) => ({
+  //             ...(i === 0
+  //               ? currentItem
+  //               : {
+  //                   unit: "Gms.",
+  //                   rate: "",
+  //                   unit_price: false,
+  //                   making_charges: "",
+  //                 }),
+  //                 item_code: e.target.value,
+  //                 code: e.target_value,
+  //                 item_description: item.item_description,
+  //             hsn_code: item.hsn_code,
+  //             quantity: item.gross_weight,
+  //             unit_price: i === 0 ? true : false,
+  //           }));
+  //           items.splice(idx, 1, ...newItems);
+  //           return { ...prev, items };
+  //         });
+  //       } else {
+  //         showNotification(
+  //           "error",
+  //           "Error",
+  //           "This product is sold or deleted.",
+  //         );
+  //       }
+  //     } catch (error) {
+  //       console.error("Error:", error);
+  //     }
+  //   }
+  // };
 
   const handleDeleteInvoice = async () => {
   try {
@@ -473,13 +472,13 @@ export default function MainPage({ setIsLoggedIn }) {
               &#8942;
             </button>
             {showSettingDropdown && (
-              <div className="absolute right-0 mt-2 w-44 bg-gray-500 rounded-lg shadow-lg z-50">
+              <div className="absolute right-0 mt-2 w-52 bg-gray-500 rounded-lg shadow-lg z-[9999]">
                 <button
                   onClick={() => {
                     setShowSettings(true);
                     setShowSettingDropdown(false);
                   }}
-                  className="w-full text-left px-4 py-2 text-sm text-white hover:bg-gray-400 "
+                  className="w-full text-left px-4 py-2 text-sm text-white hover:bg-gray-400 z-[999] "
                 >
                   Update Gold Rate
                 </button>
@@ -511,7 +510,23 @@ export default function MainPage({ setIsLoggedIn }) {
             )}
           </div>
         </header>
-
+        <div className="w-full fixed flex items-center justify-center bg-gray-400 px-4 md:px-8 py-3 md:py-4  mt-16 border border-gray-200 z-[30]">
+          <div className="flex items-center text-white font-semibold">
+            Gold Rates:{" "}
+            <div className="ml-4 flex items-center gap-3">
+              <span className="border border-gray-300 rounded-lg px-1 py-1">24K - {goldRateData?.goldRate24K || "N/A"}</span>
+              </div>
+              <div className="ml-4 flex items-center gap-3">
+              <span className="border border-gray-300 rounded-lg px-1 py-1">22K - {goldRateData?.goldRate22K || "N/A"}</span>
+              </div>
+              <div className="ml-4 flex items-center gap-3">
+              <span className="border border-gray-300 rounded-lg px-1 py-1">18K - {goldRateData?.goldRate18K || "N/A"}</span>
+              </div>
+              <div className="ml-4 flex items-center gap-3">
+              <span className="border border-gray-300 rounded-lg px-1 py-1">14K - {goldRateData?.goldRate14K || "N/A"}</span>
+              </div>
+          </div>
+        </div>
         {showUpdateInvoice && (
           <div
             className="fixed inset-0 bg-black/40 backdrop-blur-sm flex items-center justify-center z-50"
@@ -640,7 +655,7 @@ export default function MainPage({ setIsLoggedIn }) {
                           className="w-full border border-gray-400 rounded-md px-3 py-2 bg-gray-300 text-gray-500 text-sm cursor-not-allowed"
                         />
                         <label className="absolute left-3 -top-3.5 bg-gray-100 px-1 text-gray-500 text-sm pointer-events-none">
-                          Invoice Number (read-only)
+                          Invoice Number
                         </label>
                       </div>
                     </div>
@@ -653,7 +668,6 @@ export default function MainPage({ setIsLoggedIn }) {
                         <tr className="text-gray-600">
                           {[
                             "Sno.",
-                            "Item Code",
                             "Item Name",
                             "Item Qty",
                             "Unit",
@@ -677,7 +691,7 @@ export default function MainPage({ setIsLoggedIn }) {
                             <td className="p-1 border border-gray-300 text-center text-gray-500 text-xs">
                               {item.is_main_item !== false ? idx + 1 : ""}
                             </td>
-                            <td className="p-1 border border-gray-300">
+                            {/* <td className="p-1 border border-gray-300">
                               <input
                                 value={item.item_code || item.code || ""}
                                 onChange={(e) =>
@@ -688,7 +702,7 @@ export default function MainPage({ setIsLoggedIn }) {
                                 }
                                 className="border rounded px-1.5 py-1 w-16 bg-white text-xs"
                               />
-                            </td>
+                            </td> */}
                             <td className="p-1 border border-gray-300">
                               <input
                                 value={item.item_description || ""}
@@ -842,7 +856,7 @@ export default function MainPage({ setIsLoggedIn }) {
 
         {showSettings && (
           <div
-            className="fixed inset-0 bg-black/40 backdrop-blur-sm flex items-center justify-center z-50"
+            className="fixed inset-0 bg-black/40 backdrop-blur-sm flex items-center justify-center z-[999]"
             onClick={() => setShowSettings(false)}
           >
             <div
@@ -961,7 +975,7 @@ export default function MainPage({ setIsLoggedIn }) {
           </div>
         )}
 
-        <main className="flex-1 p-4 md:p-8 mt-16">
+        <main className="flex-1 p-4 md:p-8 mt-28">
           <Outlet />
         </main>
       </div>
