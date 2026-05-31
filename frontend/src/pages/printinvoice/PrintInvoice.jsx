@@ -24,6 +24,7 @@ export default function PrintInvoice() {
     const today = new Date();
     return today.toISOString().split("T")[0];
   };
+
   const [customerData, setCustomerData] = useState({
     customerName: "",
     birthday: todayDate(),
@@ -58,6 +59,7 @@ export default function PrintInvoice() {
   const handleFetchGoldRateByDate = async (date) => {
     try {
       const goldRate = await getGoldRateByDateApi(date);
+      console.log("gold rate : ", goldRate);
       if (goldRate) {
         const karat = karatOptions.find((k) => k.value === selectedKarat);
         const rateKey = karat?.key;
@@ -543,7 +545,7 @@ export default function PrintInvoice() {
             <div className="flex items-center gap-3">
               <input
                 type="date"
-                value={goldRateData?.goldRateDate || "" || todayDate()}
+                value={goldRateData?.rateDate || "" || todayDate()}
                 onChange={(e) => handleFetchGoldRateByDate(e.target.value)}
                 className="text-sm font-semibold text-gray-700 rounded-md px-3 py-1 focus:outline-none cursor-pointer"
               />

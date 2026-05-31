@@ -1,17 +1,17 @@
-import React, { useState, useRef } from "react";
+import React, { useState} from "react";
 import { AiFillEye, AiFillEyeInvisible } from "react-icons/ai";
 import { useNavigate } from "react-router-dom";
 import { logIn } from "../../services/api/auth/authApi";
 import { useShowPasswordToggle } from "../../shared/hooks/useShowPassword";
 import { validatePassword, validatePhoneNumber } from "../../shared/utilis/Validators";
-// const loginInfo = {
-//   phone: "",
-//   password: "",
-// };
+
+const loginInfo = {
+  phone: "",
+  password: "",
+};
 
 export default function LoginPage({ setMode, setIsLoggedIn }) {
-  const phone = useRef("");
-  const password = useRef("");
+
   const [phoneerror, setPhoneError] = useState("");
   const [passworderror, setPasswordError] = useState("");
   const [loginStatus, setLoginStatus] = useState("");
@@ -26,7 +26,7 @@ export default function LoginPage({ setMode, setIsLoggedIn }) {
     // Remove non-digit characters
     phoneValue = phoneValue.replace(/\D/g, "");
 
-    phone.current = phoneValue;
+    loginInfo.phone = phoneValue;
     setPhoneError(validatePhoneNumber(phoneValue));
 
   };
@@ -34,7 +34,7 @@ export default function LoginPage({ setMode, setIsLoggedIn }) {
   const handlePasswordValidation = (e) => {
     let passwordValue = e.target.value;
 
-    password.current = passwordValue;
+    loginInfo.password = passwordValue;
     setPasswordError(validatePassword(passwordValue));
 
   };
@@ -42,15 +42,15 @@ export default function LoginPage({ setMode, setIsLoggedIn }) {
   const handleSubmit = async (e) => {
     e.preventDefault();
 
-    if (phone.current.length === 0 && password.current.length === 0) {
+    if (loginInfo.phone.length === 0 && loginInfo.password.length === 0) {
       setLoginStatus("Both Fields are empty");
       return;
     }
-    else if (phone.current.length !== 0 && password.current.length !== 0) {
+    else if (loginInfo.phone.length !== 0 && loginInfo.password.length !== 0) {
       setLoginStatus("");
     }
 
-    const logInResponse = await logIn(phone.current, password.current);
+    const logInResponse = await logIn(loginInfo.phone, loginInfo.password);
 
     if (logInResponse.message === "User not found") {
       setLoginStatus("User not found");
@@ -93,7 +93,7 @@ export default function LoginPage({ setMode, setIsLoggedIn }) {
           className={`peer w-full focus:shadow-md border border-gray-500 rounded-md px-3 py-2 bg-transparent focus:border-gray-500 focus:outline-none " +
             ${phoneerror === "Phone number does not exist" || loginStatus === "Both fields are empty"
               ? "border-gray-500 shadow-sm shadow-red-500"
-              : phone.current.length === 10 && phoneerror !== "Phone number does not exist"
+              : loginInfo.phone.length === 10 && phoneerror !== "Phone number does not exist"
                 ? "border-gray-500 shadow-sm shadow-green-500"
                 : ""
             }
@@ -133,7 +133,7 @@ export default function LoginPage({ setMode, setIsLoggedIn }) {
           className={`peer w-full focus:shadow-md border border-gray-500 rounded-md px-3 py-2 bg-transparent focus:border-gray-500 focus:outline-none
             ${passworderror === "Password  must be 6 characters long" || loginStatus === "Invalid Password" || loginStatus === "User not found" || loginStatus === "Both fields are empty"
               ? "border-gray-500 shadow-sm shadow-red-500"
-              : password.current.length >= 6
+              : loginInfo.password.length >= 6
                 ? "border-gray-500 shadow-sm shadow-green-500"
                 : ""
             }

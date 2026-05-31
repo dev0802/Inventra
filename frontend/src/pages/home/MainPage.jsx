@@ -82,11 +82,12 @@ export default function MainPage({ setIsLoggedIn }) {
       isOpen: false,
     }));
   };
-
+  
   useEffect(() => {
     const fetchGoldRate = async () => {
       try {
         const latestGoldRate = await getLatestGoldRateApi();
+        if(latestGoldRate) {
         setGoldRateData({
           goldRate24K: latestGoldRate.gold_rate_24k,
           goldRate22K: latestGoldRate.gold_rate_22k,
@@ -95,13 +96,20 @@ export default function MainPage({ setIsLoggedIn }) {
           rateDate: latestGoldRate.rate_date
             ? new Date(latestGoldRate.rate_date).toLocaleDateString("en-CA")
             : todayDate(),
+        });}
+        else{
+        setGoldRateData({
+          goldRate24K: "",
+          goldRate22K: "",
+          goldRate18K: "",
+          goldRate14K: "",
+          rateDate: todayDate(),
         });
-        
+      }
       } catch (error) {
         console.error("Error fetching gold rate:", error);
       }
     };
-
     fetchGoldRate();
   }, []);
 

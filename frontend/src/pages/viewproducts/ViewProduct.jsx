@@ -91,7 +91,6 @@ export default function ViewProduct() {
     const printArea = document.getElementById("labels-print-area");
     if (!printArea) return;
 
-    // Saare labels ek saath capture karo
     const canvas = await html2canvas(printArea, {
       scale: 2,
       useCORS: true,
@@ -137,7 +136,6 @@ export default function ViewProduct() {
       </body>
     </html>
   `);
-    printWindow.document.close();
   };
 
   const handleFilter = (e) => {
@@ -188,8 +186,6 @@ export default function ViewProduct() {
     setLoadProducts(appliedFilters);
     setShowFilter(false);
   };
-
-  
 
   useEffect(() => {
     const loadTodayProducts = async () => {

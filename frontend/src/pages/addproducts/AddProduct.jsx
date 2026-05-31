@@ -177,8 +177,8 @@ export default function AddProduct() {
   };
 
   const handleReset = () => {
-    setProductData({
-      // itemDescription: "",
+    setProductData((prev)=>({
+      itemDescription: prev.itemDescription,
       hsnCode: "7113",
       grossWeight: "",
       stoneWeight: "",
@@ -194,7 +194,7 @@ export default function AddProduct() {
       price: "",
       isSold: false,
       isDeleted: false,
-    });
+    }));
   };
 
   const deleteItemDescriptions = async () => {
