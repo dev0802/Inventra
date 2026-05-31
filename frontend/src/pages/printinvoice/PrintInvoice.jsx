@@ -20,7 +20,26 @@ const karatOptions = [
 ];
 export default function PrintInvoice() {
   const [includeGST, setIncludeGST] = useState(true);
-
+  const todayDate = () => {
+    const today = new Date();
+    return today.toISOString().split("T")[0];
+  };
+  const [customerData, setCustomerData] = useState({
+    customerName: "",
+    birthday: todayDate(),
+    anniversary: todayDate(),
+    phone1Country: "+91",
+    phone1: "",
+    phone2Country: "+91",
+    phone2: "",
+    pinCode: "",
+    vpo: "",
+    district: "",
+    state: "",
+    email: "",
+    gstin: "03ASRPS4951M1ZO",
+    customerGstin: "",
+  });
   const goldRateData = useGoldRate();
 
   const [selectedKarat, setSelectedKarat] = useState("24K");
@@ -141,7 +160,7 @@ export default function PrintInvoice() {
       const url = URL.createObjectURL(blob);
       const link = document.createElement("a");
       link.href = url;
-      // link.download = `Invoice-${saved.display_number || saved.display_number}.pdf`;
+      
       link.target = "_blank";
       document.body.appendChild(link);
       link.click();
@@ -153,11 +172,6 @@ export default function PrintInvoice() {
       showNotification("error", "Error", "Failed to generate invoice");
     }
   };
-  
-  const todayDate = () => {
-    const today = new Date();
-    return today.toISOString().split("T")[0];
-  };
 
   const [notification, setNotification] = useState({
     isOpen: false,
@@ -167,23 +181,6 @@ export default function PrintInvoice() {
   });
 
   const [activeTab, setActiveTab] = useState("Customer Details");
-
-  const [customerData, setCustomerData] = useState({
-    customerName: "",
-    birthday: todayDate(),
-    anniversary: todayDate(),
-    phone1Country: "+91",
-    phone1: "",
-    phone2Country: "+91",
-    phone2: "",
-    pinCode: "",
-    vpo: "",
-    district: "",
-    state: "",
-    email: "",
-    gstin: "03ASRPS4951M1ZO",
-    customerGstin: "",
-  });
 
   const [rows, setRows] = useState([
     {
@@ -526,7 +523,7 @@ export default function PrintInvoice() {
         </div>
         {activeTab === "Item Details" && (
           <div className="flex items-center justify-between gap-4 mt-3">
-            {/* LEFT — GST */}
+
             <div className="flex items-center gap-2">
               <input
                 type="checkbox"
@@ -543,14 +540,14 @@ export default function PrintInvoice() {
               </label>
             </div>
 
-            {/* RIGHT — Date + Gold Rate */}
             <div className="flex items-center gap-3">
               <input
                 type="date"
-                value={goldRateData?.rateDate || "" || todayDate()}
+                value={goldRateData?.goldRateDate || "" || todayDate()}
                 onChange={(e) => handleFetchGoldRateByDate(e.target.value)}
-                className="text-sm font-semibold text-gray-700 border border-gray-400 rounded-md px-3 py-1 bg-gray-100 focus:outline-none cursor-pointer"
+                className="text-sm font-semibold text-gray-700 rounded-md px-3 py-1 focus:outline-none cursor-pointer"
               />
+              
               <label className="text-md font-medium text-gray-700">
                 Gold Rate
               </label>

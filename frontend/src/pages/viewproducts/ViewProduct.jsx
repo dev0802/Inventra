@@ -27,7 +27,6 @@ export default function ViewProduct() {
   const [selectedIds, setSelectedIds] = useState([]);
   const [labelPopup, setLabelPopup] = useState(false);
 
-  // ─── Update Form State ──────────────────────────────────────────────────────
   const [updateData, setUpdateData] = useState({
     itemCode: "",
     itemDescription: "",
@@ -71,8 +70,8 @@ export default function ViewProduct() {
     setSelectedIds(
       (prev) =>
         prev.includes(id)
-          ? prev.filter((x) => x !== id) // already selected → remove
-          : [...prev, id], // nahi tha → add
+          ? prev.filter((x) => x !== id)
+          : [...prev, id],
     );
   };
 
@@ -80,7 +79,7 @@ export default function ViewProduct() {
     if (selectedIds.length === loadProducts.length) {
       setSelectedIds([]);
     } else {
-      setSelectedIds(loadProducts.map((p) => p.product_id)); // kuch selected → sab lo
+      setSelectedIds(loadProducts.map((p) => p.product_id));
     }
   };
 
@@ -140,6 +139,7 @@ export default function ViewProduct() {
   `);
     printWindow.document.close();
   };
+
   const handleFilter = (e) => {
     setFilters({ ...filters, [e.target.name]: e.target.value });
   };
@@ -189,11 +189,7 @@ export default function ViewProduct() {
     setShowFilter(false);
   };
 
-  const handleLoadProduct = async () => {
-    const { products, descriptions } = await getAllProducts();
-    setLoadProducts(products);
-    setDescription(descriptions);
-  };
+  
 
   useEffect(() => {
     const loadTodayProducts = async () => {
@@ -269,7 +265,8 @@ export default function ViewProduct() {
   const handleDataUpdate = async () => {
     try {
       await updateProductDetails(updateData);
-      await handleLoadProduct();
+      const updatedProducts = await filterProducts(filters);
+      setLoadProducts(updatedProducts);
       setUpdatePopup(false);
     } catch (error) {
       console.error(error);
@@ -329,7 +326,6 @@ export default function ViewProduct() {
     },
   );
 
-  // ─── RENDER ──────────────────────────────────────────────────────────────────
   return (
     <div className="p-1">
       <NotificationModal
@@ -521,7 +517,7 @@ export default function ViewProduct() {
                 ))}
 
                 {/* Totals Row */}
-                <tr>
+                <tr className="sticky bottom-0 bg-gray-200 border border-gray-300 px-3 py-2">
                   <td className="border border-gray-300 px-3 py-2"></td>
                   <td className="border border-gray-300 px-3 py-2"></td>
                   <td className="border border-gray-300 px-3 py-2 font-bold text-gray-800">

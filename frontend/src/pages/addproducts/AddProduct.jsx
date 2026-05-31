@@ -15,7 +15,9 @@ export default function AddProduct() {
     silverPurity: "",
     diamondPurity: "",
   });
+  
   const [itemDescriptions, setItemDescriptions] = useState([]);
+  
   const [productData, setProductData] = useState({
     itemDescription: "",
     hsnCode: "7113",

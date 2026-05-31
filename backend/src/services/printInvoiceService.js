@@ -248,7 +248,7 @@ exports.saveInvoice = async ({ customer_id, group_code, invoice_date }) => {
           ? Math.round((baseAmt * parseFloat(row.making_charges)) / 100)
           : null,
       amount: Math.round(baseAmt),
-        is_main_item: !isNaN(Number(row.code)) && row.code !== "",
+      is_main_item: !isNaN(Number(row.code)) && row.code !== "",
       };
       console.log("isNaN check:", isNaN(Number(row.code)));
       console.log("CODE VALUE:", row.code, "TYPE:", typeof row.code);

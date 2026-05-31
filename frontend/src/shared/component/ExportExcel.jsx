@@ -11,7 +11,6 @@ export const exportToExcel = (stockData, grandTotal, fromDate, toDate) => {
     const from = formatDate(fromDate);
     const to   = formatDate(toDate);
 
-    // ✅ Parse grandTotal safely
     const gt = {
         opMain:  parseFloat(grandTotal.opMain)  || 0,
         opAlt:   parseFloat(grandTotal.opAlt)   || 0,
@@ -79,7 +78,6 @@ export const exportToExcel = (stockData, grandTotal, fromDate, toDate) => {
     setCell(10, totalRow, gt.clMain,   'n');
     setCell(11, totalRow, gt.clAlt,    'n');
 
-    // ✅ Set worksheet range (required!)
     ws['!ref'] = XLSX.utils.encode_range({
         s: { r: 0, c: 0 },
         e: { r: totalRow, c: 11 }

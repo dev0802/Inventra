@@ -23,6 +23,8 @@ export default function LayoutRoutes() {
     <div className="relative min-h-screen">
 
       <Suspense fallback={<PageLoader />}>
+        {isLoggedIn && (
+          
         <Routes>
 
           <Route
@@ -35,7 +37,7 @@ export default function LayoutRoutes() {
           />
 
           <Route
-            path="/main"
+            path="/main/*"
             element={
               <div className={!isLoggedIn ? "blur-sm pointer-events-none" : ""}>
                 <MainPage setIsLoggedIn={setIsLoggedIn} />
@@ -49,6 +51,7 @@ export default function LayoutRoutes() {
           </Route>
 
         </Routes>
+        )}
       </Suspense>
 
       {/* Overlay */}

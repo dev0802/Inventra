@@ -45,6 +45,7 @@ export default function MainPage({ setIsLoggedIn }) {
   });
 
   const [userName, setUserName] = useState("");
+  
   useEffect(() => {
     const checkSession = async () => {
       try {
@@ -54,7 +55,7 @@ export default function MainPage({ setIsLoggedIn }) {
           setUserName(response.user.userName);
         } else {
           setIsLoggedIn(false);
-          navigate("/");
+          navigate("/main/printinvoice");
         }
       } catch (error) {
         console.error("Session check failed:", error);
@@ -81,7 +82,6 @@ export default function MainPage({ setIsLoggedIn }) {
       isOpen: false,
     }));
   };
-  // const [manualInvoice, setManualInvoice] = useState(false);
 
   useEffect(() => {
     const fetchGoldRate = async () => {
@@ -183,8 +183,7 @@ export default function MainPage({ setIsLoggedIn }) {
         goldRate22K: "",
         goldRate18K: "",
         goldRate14K: "",
-      }));
-      
+      }));  
     }
     
   };
@@ -214,7 +213,7 @@ export default function MainPage({ setIsLoggedIn }) {
     const url = URL.createObjectURL(blob);
     const link = document.createElement("a");
     link.href = url;
-    link.download = `Duplicate-Invoice-${foundInvoice.invoice_number}.pdf`;
+    link.target = "_blank";
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
@@ -239,9 +238,12 @@ export default function MainPage({ setIsLoggedIn }) {
     invoiceNumber: "",
     financialYear: getCurrentFY(),
   });
+
   const [foundInvoice, setFoundInvoice] = useState(null);
 
+  //this needs to be changed it should be auto fetched
   const fyList = ["2023-24", "2024-25", "2025-26", "2026-27"];
+  
   const handleSearchKeyDown = (e) => {
     if (e.key === "Enter") handleSearchInvoice();
   };
@@ -296,7 +298,8 @@ export default function MainPage({ setIsLoggedIn }) {
     showNotification("error", "Error", "Failed to delete invoice.");
   }
 };
-  const handleSearchInvoice = async () => {
+  
+const handleSearchInvoice = async () => {
     if (!updateSearch.invoiceNumber)
       return showNotification("error", "Error", "Invoice number required!");
     try {
@@ -510,7 +513,7 @@ export default function MainPage({ setIsLoggedIn }) {
             )}
           </div>
         </header>
-        <div className="w-full fixed flex items-center justify-center bg-gray-400 px-4 md:px-8 py-3 md:py-4  mt-16 border border-gray-200 z-[30]">
+        <div className="w-full fixed flex items-center justify-center bg-gray-400 px-4 md:px-8 py-3 md:py-4  mt-16 z-[30]">
           <div className="flex items-center text-white font-semibold">
             Gold Rates:{" "}
             <div className="ml-4 flex items-center gap-3">
