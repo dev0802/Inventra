@@ -1,5 +1,4 @@
 import React, { useEffect } from "react";
-import {GoldRateContext} from "../../context/GoldRateContext";
 import { NavLink, Outlet } from "react-router-dom";
 import { useNavigate } from "react-router-dom";
 import { useState } from "react";
@@ -15,20 +14,27 @@ import { logOut, verifySession } from "../../services/api/auth/authApi";
 import {
   getInvoiceByNumberAndFY,
   updateInvoice,
-  deleteInvoice
+  deleteInvoice,
 } from "../../services/api/printinvoice/printInvoiceApi";
 import DuplicateInvoiceCopyPdf from "../../shared/component/DuplicateInvoiceCopyPdf";
 import InvoicePdf from "../../shared/component/InvoicePdf";
 export default function MainPage({ setIsLoggedIn }) {
   const navigate = useNavigate();
   const todayDate = () => {
-    const today= new Date().toISOString().split("T")[0];
+    const today = new Date().toISOString().split("T")[0];
     return today;
   };
 
-  // const [showDropdown, setShowDropdown] = useState(false);
   const [showSettingDropdown, setShowSettingDropdown] = useState(false);
   const [showSettings, setShowSettings] = useState(false);
+
+  const [todayGoldRate, setTodayGoldRate] = useState({
+    todayGold24K: "",
+    todayGold22K: "",
+    todayGold18K: "",
+    todayGold14K: "",
+  });
+
   const [goldRateData, setGoldRateData] = useState({
     goldRate24K: "",
     goldRate22K: "",
@@ -45,7 +51,7 @@ export default function MainPage({ setIsLoggedIn }) {
   });
 
   const [userName, setUserName] = useState("");
-  
+
   useEffect(() => {
     const checkSession = async () => {
       try {
@@ -82,30 +88,45 @@ export default function MainPage({ setIsLoggedIn }) {
       isOpen: false,
     }));
   };
-  
+
   useEffect(() => {
     const fetchGoldRate = async () => {
       try {
         const latestGoldRate = await getLatestGoldRateApi();
-        if(latestGoldRate) {
-        setGoldRateData({
-          goldRate24K: latestGoldRate.gold_rate_24k,
-          goldRate22K: latestGoldRate.gold_rate_22k,
-          goldRate18K: latestGoldRate.gold_rate_18k,
-          goldRate14K: latestGoldRate.gold_rate_14k,
-          rateDate: latestGoldRate.rate_date
-            ? new Date(latestGoldRate.rate_date).toLocaleDateString("en-CA")
-            : todayDate(),
-        });}
-        else{
-        setGoldRateData({
-          goldRate24K: "",
-          goldRate22K: "",
-          goldRate18K: "",
-          goldRate14K: "",
-          rateDate: todayDate(),
-        });
-      }
+
+        if (latestGoldRate) {
+          const rateObj = {
+            goldRate24K: latestGoldRate.gold_rate_24k,
+            goldRate22K: latestGoldRate.gold_rate_22k,
+            goldRate18K: latestGoldRate.gold_rate_18k,
+            goldRate14K: latestGoldRate.gold_rate_14k,
+          };
+          const isToday =
+            latestGoldRate.rate_date?.split("T")[0] === todayDate();
+          if (isToday) {
+            setGoldRateData({
+              goldRate24K: latestGoldRate.gold_rate_24k,
+              goldRate22K: latestGoldRate.gold_rate_22k,
+              goldRate18K: latestGoldRate.gold_rate_18k,
+              goldRate14K: latestGoldRate.gold_rate_14k,
+              rateDate: todayDate(),
+            });
+            setTodayGoldRate({
+              todayGold24K: latestGoldRate.gold_rate_24k,
+              todayGold22K: latestGoldRate.gold_rate_22k,
+              todayGold18K: latestGoldRate.gold_rate_18k,
+              todayGold14K: latestGoldRate.gold_rate_14k,
+            });
+          }
+          setTodayGoldRate({
+            todayGold24K: latestGoldRate.gold_rate_24k,
+            todayGold22K: latestGoldRate.gold_rate_22k,
+            todayGold18K: latestGoldRate.gold_rate_18k,
+            todayGold14K: latestGoldRate.gold_rate_14k,
+          });
+
+          setGoldRateData({ ...rateObj, rateDate: todayDate() });
+        }
       } catch (error) {
         console.error("Error fetching gold rate:", error);
       }
@@ -136,7 +157,7 @@ export default function MainPage({ setIsLoggedIn }) {
 
   const handleGoldRateChange = (e) => {
     const rateValue = e.target.value;
-    const rateName = e.target.name; // input pe name attribute chahiye
+    const rateName = e.target.name;
     setGoldRateData((prev) => ({
       ...prev,
       [rateName]: rateValue,
@@ -159,21 +180,27 @@ export default function MainPage({ setIsLoggedIn }) {
     }
 
     try {
-    await setGoldRateApi({
-      ...goldRateData,
-      rateDate: goldRateData.rateDate || todayDate(),
-    });
-    setShowSettings(false);
+      await setGoldRateApi({
+        ...goldRateData,
+        rateDate: goldRateData.rateDate || todayDate(),
+      });
+      setTodayGoldRate({
+        todayGold24K: goldRateData.goldRate24K,
+        todayGold22K: goldRateData.goldRate22K,
+        todayGold18K: goldRateData.goldRate18K,
+        todayGold14K: goldRateData.goldRate14K,
+      });
+      setShowSettings(false);
     } catch (error) {
       console.error("Error setting gold rate:", error);
     }
     setShowSettings(false);
   };
 
-  
   const handlefetchGoldRateByDate = async (date) => {
     try {
       const goldRate = await getGoldRateByDateApi(date);
+      console.log("Gold Rate for date", date, ":", goldRate);
       if (goldRate) {
         setGoldRateData({
           goldRate24K: goldRate.gold_rate_24k,
@@ -183,7 +210,6 @@ export default function MainPage({ setIsLoggedIn }) {
           rateDate: date,
         });
       }
-      
     } catch (error) {
       setGoldRateData((prev) => ({
         ...prev,
@@ -191,47 +217,50 @@ export default function MainPage({ setIsLoggedIn }) {
         goldRate22K: "",
         goldRate18K: "",
         goldRate14K: "",
-      }));  
+      }));
     }
-    
   };
 
   const [showUpdateInvoice, setShowUpdateInvoice] = useState(false);
 
   const handlePrintDuplicate = async () => {
-  try {
+    try {
+      await updateInvoice(foundInvoice.invoice_id, {
+        customer: foundInvoice.customer,
+        items: foundInvoice.items,
+        invoice_date: foundInvoice.invoice_date,
+      });
 
-    await updateInvoice(foundInvoice.invoice_id, {
-      customer: foundInvoice.customer,
-      items: foundInvoice.items,
-      invoice_date: foundInvoice.invoice_date,
-    });
+      const blob = await pdf(
+        <DuplicateInvoiceCopyPdf
+          customerData={foundInvoice.customer}
+          rows={foundInvoice.items}
+          invoiceNumber={
+            foundInvoice.display_number || foundInvoice.invoice_number
+          }
+          invoiceDate={foundInvoice.invoice_date}
+          cgstRate={1.5}
+          sgstRate={1.5}
+        />,
+      ).toBlob();
 
-    const blob = await pdf(
-      <DuplicateInvoiceCopyPdf
-        customerData={foundInvoice.customer}
-        rows={foundInvoice.items}
-        invoiceNumber={foundInvoice.display_number || foundInvoice.invoice_number}
-        invoiceDate={foundInvoice.invoice_date}
-        cgstRate={1.5}
-        sgstRate={1.5}
-      />
-    ).toBlob();
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement("a");
+      link.href = url;
+      link.target = "_blank";
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
 
-    const url = URL.createObjectURL(blob);
-    const link = document.createElement("a");
-    link.href = url;
-    link.target = "_blank";
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-
-    showNotification("success", "Success", "Invoice saved & duplicate printed!");
-
-  } catch {
-    showNotification("error", "Error", "Failed to save or print invoice.");
-  }
-};
+      showNotification(
+        "success",
+        "Success",
+        "Invoice saved & duplicate printed!",
+      );
+    } catch {
+      showNotification("error", "Error", "Failed to save or print invoice.");
+    }
+  };
 
   const getCurrentFY = () => {
     const now = new Date();
@@ -251,7 +280,7 @@ export default function MainPage({ setIsLoggedIn }) {
 
   //this needs to be changed it should be auto fetched
   const fyList = ["2023-24", "2024-25", "2025-26", "2026-27"];
-  
+
   const handleSearchKeyDown = (e) => {
     if (e.key === "Enter") handleSearchInvoice();
   };
@@ -296,18 +325,18 @@ export default function MainPage({ setIsLoggedIn }) {
   // };
 
   const handleDeleteInvoice = async () => {
-  try {
-    await deleteInvoice(foundInvoice.invoice_id);
-    showNotification("success", "Deleted", "Invoice deleted successfully!");
-    // setShowDeleteConfirm(false);
-    setShowUpdateInvoice(false);
-    setFoundInvoice(null);
-  } catch {
-    showNotification("error", "Error", "Failed to delete invoice.");
-  }
-};
-  
-const handleSearchInvoice = async () => {
+    try {
+      await deleteInvoice(foundInvoice.invoice_id);
+      showNotification("success", "Deleted", "Invoice deleted successfully!");
+      // setShowDeleteConfirm(false);
+      setShowUpdateInvoice(false);
+      setFoundInvoice(null);
+    } catch {
+      showNotification("error", "Error", "Failed to delete invoice.");
+    }
+  };
+
+  const handleSearchInvoice = async () => {
     if (!updateSearch.invoiceNumber)
       return showNotification("error", "Error", "Invoice number required!");
     try {
@@ -362,35 +391,36 @@ const handleSearchInvoice = async () => {
         invoice_date: foundInvoice.invoice_date,
       });
       const blob = await pdf(
-      <InvoicePdf
-        customerData={foundInvoice.customer}
-        rows={foundInvoice.items}
-        invoiceNumber={foundInvoice.display_number || foundInvoice.invoice_number}
-        invoiceDate={foundInvoice.invoice_date}
-        cgstRate={1.5}
-        sgstRate={1.5}
-      />
-    ).toBlob();
+        <InvoicePdf
+          customerData={foundInvoice.customer}
+          rows={foundInvoice.items}
+          invoiceNumber={
+            foundInvoice.display_number || foundInvoice.invoice_number
+          }
+          invoiceDate={foundInvoice.invoice_date}
+          cgstRate={1.5}
+          sgstRate={1.5}
+        />,
+      ).toBlob();
 
-    const url = URL.createObjectURL(blob);
-    const link = document.createElement("a");
-    link.href = url;
-    link.download = `Invoice-${foundInvoice.invoice_number}.pdf`;
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement("a");
+      link.href = url;
+      link.download = `Invoice-${foundInvoice.invoice_number}.pdf`;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
 
-    showNotification("success", "Success", "Invoice updated & printed!");
-    setShowUpdateInvoice(false);
-    setFoundInvoice(null);
-    
+      showNotification("success", "Success", "Invoice updated & printed!");
+      setShowUpdateInvoice(false);
+      setFoundInvoice(null);
     } catch {
       showNotification("error", "Error", "Failed to update invoice.");
     }
   };
 
   return (
-    <GoldRateContext.Provider value = {goldRateData}>
+    <>
       <div className="min-h-screen  overflow-x-hidden">
         <NotificationModal
           isOpen={notification.isOpen}
@@ -521,21 +551,29 @@ const handleSearchInvoice = async () => {
             )}
           </div>
         </header>
-        <div className="w-full fixed flex items-center justify-center bg-gray-400 px-4 md:px-8 py-3 md:py-4  mt-16 z-[30]">
-          <div className="flex items-center text-white font-semibold">
-            Gold Rates:{" "}
+        <div className="w-full fixed flex items-center justify-center bg-gray-300 px-17 md:px-8 py-3 md:py-4 mt-16 z-[30]">
+          <div className="flex items-center text-gray-500 font-bold mt-2 px-3">
+            Today's Gold Rate:{" "}
             <div className="ml-4 flex items-center gap-3">
-              <span className="border border-gray-300 rounded-lg px-1 py-1">24K - {goldRateData?.goldRate24K || "N/A"}</span>
-              </div>
-              <div className="ml-4 flex items-center gap-3">
-              <span className="border border-gray-300 rounded-lg px-1 py-1">22K - {goldRateData?.goldRate22K || "N/A"}</span>
-              </div>
-              <div className="ml-4 flex items-center gap-3">
-              <span className="border border-gray-300 rounded-lg px-1 py-1">18K - {goldRateData?.goldRate18K || "N/A"}</span>
-              </div>
-              <div className="ml-4 flex items-center gap-3">
-              <span className="border border-gray-300 rounded-lg px-1 py-1">14K - {goldRateData?.goldRate14K || "N/A"}</span>
-              </div>
+              <span className="border border-gray-300 rounded-lg px-1 py-1">
+                24K - {todayGoldRate?.todayGold24K || "0"}
+              </span>
+            </div>
+            <div className="ml-4 flex items-center gap-3">
+              <span className="border border-gray-300 rounded-lg px-1 py-1">
+                22K - {todayGoldRate?.todayGold22K || "0"}
+              </span>
+            </div>
+            <div className="ml-4 flex items-center gap-3">
+              <span className="border border-gray-300 rounded-lg px-1 py-1">
+                18K - {todayGoldRate?.todayGold18K || "0"}
+              </span>
+            </div>
+            <div className="ml-4 flex items-center gap-3">
+              <span className="border border-gray-300 rounded-lg px-1 py-1">
+                14K - {todayGoldRate?.todayGold14K || "0"}
+              </span>
+            </div>
           </div>
         </div>
         {showUpdateInvoice && (
@@ -878,7 +916,7 @@ const handleSearchInvoice = async () => {
               <div className="flex items-center justify-between mb-5">
                 <input
                   type="date"
-                value={goldRateData.rateDate}
+                  value={goldRateData.rateDate || todayDate()}
                   onChange={(e) => {
                     handleGoldRateChange(e);
                     handlefetchGoldRateByDate(e.target.value);
@@ -886,7 +924,6 @@ const handleSearchInvoice = async () => {
                   name="rateDate"
                   className="text-md font-bold text-gray-700 border-none bg-transparent focus:ring-0"
                 />
-                
               </div>
 
               {/* Gold Rate Input */}
@@ -895,7 +932,7 @@ const handleSearchInvoice = async () => {
                   <div className="relative">
                     <input
                       id="goldRate"
-                      value={goldRateData.goldRate24K}
+                      value={goldRateData.goldRate24K || ""}
                       onChange={handleGoldRateChange}
                       name="goldRate24K"
                       placeholder=" "
@@ -913,7 +950,7 @@ const handleSearchInvoice = async () => {
                   <div className="relative">
                     <input
                       id="goldRate"
-                      value={goldRateData.goldRate22K}
+                      value={goldRateData.goldRate22K || ""}
                       onChange={handleGoldRateChange}
                       name="goldRate22K"
                       placeholder=" "
@@ -931,7 +968,7 @@ const handleSearchInvoice = async () => {
                   <div className="relative">
                     <input
                       id="goldRate"
-                      value={goldRateData.goldRate18K}
+                      value={goldRateData.goldRate18K || ""}
                       onChange={handleGoldRateChange}
                       name="goldRate18K"
                       placeholder=" "
@@ -949,7 +986,7 @@ const handleSearchInvoice = async () => {
                   <div className="relative">
                     <input
                       id="goldRate"
-                      value={goldRateData.goldRate14K}
+                      value={goldRateData.goldRate14K || ""}
                       onChange={handleGoldRateChange}
                       name="goldRate14K"
                       placeholder=" "
@@ -1030,6 +1067,6 @@ const handleSearchInvoice = async () => {
           </div>
         </footer>
       </div>
-    </GoldRateContext.Provider>
+    </>
   );
 }

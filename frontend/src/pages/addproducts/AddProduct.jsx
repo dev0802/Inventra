@@ -7,6 +7,24 @@ import {
 } from "../../services/productFeatureApi/addProductApi";
 import NotificationModal from "../../shared/utilis/notificationModal";
 
+let initialProductData = {
+  itemDescription: "",
+  hsnCode: "7113",
+  grossWeight: "",
+  stoneWeight: "",
+  motiWeight: "",
+  diamondWeight: "",
+  solitaireWeight: "",
+  colorStone: "",
+  minnaWeight: "",
+  netWeight: "",
+  colouring: "",
+  purchasedDate: "",
+  saleDate: "",
+  price: "",
+  isSold: false,
+  isDeleted: false,
+};
 export default function AddProduct() {
   const [showPopup, setShowPopup] = useState(false);
   const [newItemData, setNewItemData] = useState({
@@ -15,27 +33,28 @@ export default function AddProduct() {
     silverPurity: "",
     diamondPurity: "",
   });
-  
+
+  const [netWeight, setNetWeight] = useState(0);
   const [itemDescriptions, setItemDescriptions] = useState([]);
-  
-  const [productData, setProductData] = useState({
-    itemDescription: "",
-    hsnCode: "7113",
-    grossWeight: "",
-    stoneWeight: "",
-    motiWeight: "",
-    diamondWeight: "",
-    solitaireWeight: "",
-    colorStone: "",
-    minnaWeight: "",
-    netWeight: "",
-    colouring: "",
-    purchasedDate: "",
-    saleDate: "",
-    price: "",
-    isSold: false,
-    isDeleted: false,
-  });
+  const [selectItemDescription, setSelectItemDescription] = useState("");
+  // const [productData, setProductData] = useState({
+  //   itemDescription: "",
+  //   hsnCode: "7113",
+  //   grossWeight: "",
+  //   stoneWeight: "",
+  //   motiWeight: "",
+  //   diamondWeight: "",
+  //   solitaireWeight: "",
+  //   colorStone: "",
+  //   minnaWeight: "",
+  //   netWeight: "",
+  //   colouring: "",
+  //   purchasedDate: "",
+  //   saleDate: "",
+  //   price: "",
+  //   isSold: false,
+  //   isDeleted: false,
+  // });
 
   const [notification, setNotification] = useState({
     isOpen: false,
@@ -71,7 +90,8 @@ export default function AddProduct() {
       displayPurity = newItemData.diamondPurity;
     }
 
-    const showHallmark = newItemData.goldPurity && newItemData.goldPurity !== "24kt";
+    const showHallmark =
+      newItemData.goldPurity && newItemData.goldPurity !== "24kt";
 
     const fullDescription = [
       newItemData.itemDescription.trim().toUpperCase(),
@@ -85,17 +105,34 @@ export default function AddProduct() {
       const response = await addItemDescription(fullDescription);
       const saved = response?.itemDescription ?? fullDescription;
       setItemDescriptions((prev) => [...prev, saved]);
-      setProductData((prev) => ({ ...prev, itemDescription: saved }));
-      setNewItemData({ itemDescription: "", goldPurity: "", silverPurity: "", diamondPurity: "" });
+      initialProductData.itemDescription = saved;
+      setSelectItemDescription(saved);
+      console.log("Saved item description:", saved);
+      console.log("itemDescription:", initialProductData.itemDescription);
+      setNewItemData({
+        itemDescription: "",
+        goldPurity: "",
+        silverPurity: "",
+        diamondPurity: "",
+      });
       setShowPopup(false);
       // showNotification("success", "Item Description Added", `"${saved}" has been added successfully.`);
     } catch (error) {
       console.error("Failed to add item description:", error);
       setItemDescriptions((prev) => [...prev, fullDescription]);
-      setProductData((prev) => ({ ...prev, itemDescription: fullDescription }));
-      setNewItemData({ itemDescription: "", goldPurity: "", silverPurity: "", diamondPurity: "" });
+      initialProductData.itemDescription = fullDescription;
+      setNewItemData({
+        itemDescription: "",
+        goldPurity: "",
+        silverPurity: "",
+        diamondPurity: "",
+      });
       setShowPopup(false);
-      showNotification("error", "Add Failed", "Could not save to server, but item was added locally.");
+      showNotification(
+        "error",
+        "Add Failed",
+        "Could not save to server, but item was added locally.",
+      );
     }
   };
 
@@ -109,7 +146,11 @@ export default function AddProduct() {
 
   const handleChange = (e) => {
     const { name, value } = e.target;
-    setProductData((prev) => ({ ...prev, [name]: value }));
+    initialProductData[name] = value;
+
+    if(name === "itemDescription") {
+      setSelectItemDescription(value);
+    }
   };
 
   const handleNumericChange = (e) => {
@@ -118,7 +159,9 @@ export default function AddProduct() {
       value = value.replace(/\.+$/, "");
     }
 
-    const is2Decimal = ["diamondWeight", "solitaireWeight"].includes(e.target.name);
+    const is2Decimal = ["diamondWeight", "solitaireWeight"].includes(
+      e.target.name,
+    );
     const decimals = is2Decimal ? 2 : 3;
 
     if (value.includes(".")) {
@@ -126,88 +169,145 @@ export default function AddProduct() {
       value = parts[0] + "." + parts[1].slice(0, decimals);
     }
 
-    setProductData((prev) => {
-      const updated = { ...prev, [e.target.name]: value };
-      const netWeight =
-        (parseFloat(updated.grossWeight) || 0) -
-        ((parseFloat(updated.stoneWeight) || 0) +
-          (parseFloat(updated.motiWeight) || 0) +
-          (parseFloat(updated.diamondWeight) || 0) / 5 +
-          (parseFloat(updated.solitaireWeight) || 0) / 5 +
-          (parseFloat(updated.colorStone) || 0) +
-          (parseFloat(updated.minnaWeight) || 0) +
-          (parseFloat(updated.colouring) || 0));
-      return {
-        ...updated,
-        netWeight: netWeight >= 0 ? parseFloat(netWeight.toFixed(3)) : 0,
-      };
-    });
+    // initialProductData(prev => {
+    //   const updated = { ...prev, [e.target.name]: value };
+    //   const netWeight =
+    //     (parseFloat(updated.grossWeight) || 0) -
+    //     ((parseFloat(updated.stoneWeight) || 0) +
+    //       (parseFloat(updated.motiWeight) || 0) +
+    //       (parseFloat(updated.diamondWeight) || 0) / 5 +
+    //       (parseFloat(updated.solitaireWeight) || 0) / 5 +
+    //       (parseFloat(updated.colorStone) || 0) +
+    //       (parseFloat(updated.minnaWeight) || 0) +
+    //       (parseFloat(updated.colouring) || 0));
+    //   return {
+    //     ...updated,
+    //     netWeight: netWeight >= 0 ? parseFloat(netWeight.toFixed(3)) : 0,
+    //   };
+    initialProductData[e.target.name] = value;
+    const calculationNetWeight =
+      (parseFloat(initialProductData.grossWeight) || 0) -
+      ((parseFloat(initialProductData.stoneWeight) || 0) +
+        (parseFloat(initialProductData.motiWeight) || 0) +
+        (parseFloat(initialProductData.diamondWeight) || 0) / 5 +
+        (parseFloat(initialProductData.solitaireWeight) || 0) / 5 +
+        (parseFloat(initialProductData.colorStone) || 0) +
+        (parseFloat(initialProductData.minnaWeight) || 0) +
+        (parseFloat(initialProductData.colouring) || 0));
+    const finalNetWeight =
+      calculationNetWeight >= 0
+        ? parseFloat(calculationNetWeight.toFixed(3))
+        : 0;
+    initialProductData.netWeight = finalNetWeight;
+    setNetWeight(finalNetWeight);
   };
-
+  console.log("netWeight:", netWeight);
   const handleSubmit = async (e) => {
     e.preventDefault();
 
-    if (!productData.itemDescription) {
-      showNotification("error", "Validation Error", "Please select an item description before submitting.");
+    if (!initialProductData.itemDescription) {
+      showNotification(
+        "error",
+        "Validation Error",
+        "Please select an item description before submitting.",
+      );
       return;
     }
-    if (!productData.grossWeight) {
-      showNotification("error", "Validation Error", "Please enter the gross weight before submitting.");
+    if (!initialProductData.grossWeight) {
+      showNotification(
+        "error",
+        "Validation Error",
+        "Please enter the gross weight before submitting.",
+      );
       return;
     }
 
     try {
-      const response = await addProduct(productData);
-      
+      const response = await addProduct(initialProductData);
+
       if (response.message === "Product added successfully") {
-        
         showNotification(
           "success",
           "Product Added Successfully",
-          `${response.product?.item_description} has been added with \n Item Code: ${response.product?.item_code ?? "N/A"}`
+          `${response.product?.item_description} has been added with \n Item Code: ${response.product?.item_code ?? "N/A"}`,
         );
         handleReset();
       } else {
-        showNotification("error", "Failed to Add", "Product could not be added. Please try again.");
+        showNotification(
+          "error",
+          "Failed to Add",
+          "Product could not be added. Please try again.",
+        );
       }
     } catch (error) {
       console.error("Submit error:", error);
-      showNotification("error", "Something Went Wrong", "An unexpected error occurred. Please try again.");
+      showNotification(
+        "error",
+        "Something Went Wrong",
+        "An unexpected error occurred. Please try again.",
+      );
     }
+    handleReset();
   };
 
   const handleReset = () => {
-    setProductData((prev)=>({
-      itemDescription: prev.itemDescription,
-      hsnCode: "7113",
-      grossWeight: "",
-      stoneWeight: "",
-      motiWeight: "",
-      diamondWeight: "",
-      solitaireWeight: "",
-      colorStone: "",
-      minnaWeight: "",
-      netWeight: "",
-      colouring: "",
-      purchasedDate: "",
-      saleDate: "",
-      price: "",
-      isSold: false,
-      isDeleted: false,
-    }));
+    setSelectItemDescription(itemDescriptions[itemDescriptions.length - 1] || "");
+    initialProductData.hsnCode = "7113";
+    initialProductData.grossWeight = "";
+    initialProductData.stoneWeight = "";
+    initialProductData.motiWeight = "";
+    initialProductData.diamondWeight = "";
+    initialProductData.solitaireWeight = "";
+    initialProductData.colorStone = "";
+    initialProductData.minnaWeight = "";
+    initialProductData.netWeight = "";
+    initialProductData.colouring = "";
+    initialProductData.purchasedDate = "";
+    initialProductData.saleDate = "";
+    initialProductData.price = "";
+    setNetWeight(0);
+
+    const fields = [
+      "itemDescription",
+      "hsnCode",
+      "grossWeight",
+      "stoneWeight",
+      "motiWeight",
+      "diamondWeight",
+      "solitaireWeight",
+      "colorStone",
+      "minnaWeight",
+      "netWeight",
+      "colouring",
+      "purchasedDate",
+      "saleDate",
+      "price",
+    ];
+    fields.forEach((field) => {
+      const input = document.querySelector(`[name="${field}"]`);
+      if (input) {
+        input.value = field === "hsnCode" ? "7113" : "";
+      }
+    });
+
   };
 
   const deleteItemDescriptions = async () => {
-    if (!productData.itemDescription) return;
+    if (!initialProductData.itemDescription) return;
 
     try {
-      await deleteItemDescription(productData.itemDescription);
-      setItemDescriptions((prev) => prev.filter((item) => item !== productData.itemDescription));
-      setProductData((prev) => ({ ...prev, itemDescription: "" }));
-      showNotification("success", "Item Description Deleted", `"${productData.itemDescription}" has been removed.`);
+      await deleteItemDescription(initialProductData.itemDescription);
+      setItemDescriptions((prev) =>
+        prev.filter((item) => item !== initialProductData.itemDescription),
+      );
+      initialProductData.itemDescription = "";
     } catch (error) {
       console.error("Delete failed:", error);
-      showNotification("error", "Delete Failed", "Could not delete item description. Please try again.");
+      showNotification(
+        "error",
+        "Delete Failed",
+        "Could not delete item description. Please try again.",
+      );
     }
   };
 
@@ -224,19 +324,22 @@ export default function AddProduct() {
 
       <div className="bg-gray-300 shadow-lg shadow-gray-600 backdrop-blur-md border border-gray-400 rounded-2xl p-6 md:max-w-7xl md:min-h-4xl mx-auto">
         <div className="flex flex-col gap-3">
-
           {/* Item Description */}
           <div className="flex items-center gap-3">
-            <label className="text-gray-700 text-md font-medium w-44">Item Description</label>
+            <label className="text-gray-700 text-md font-medium w-44">
+              Item Description
+            </label>
             <select
               name="itemDescription"
-              value={productData.itemDescription}
+              value={selectItemDescription}
               onChange={handleChange}
               className="flex-1 px-4 py-2 rounded-full border border-gray-400 bg-white/50 outline-none focus:border-gray-400 focus:shadow-md appearance-none cursor-pointer"
             >
               <option value="">-- Select --</option>
               {itemDescriptions.map((item, index) => (
-                <option key={index} value={item}>{item}</option>
+                <option key={index} value={item}>
+                  {item}
+                </option>
               ))}
             </select>
 
@@ -246,23 +349,46 @@ export default function AddProduct() {
                 onClick={() => setShowPopup(!showPopup)}
                 className="bg-transparent outline-none flex items-center justify-center text-gray-900"
               >
-                <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" width="29" height="20" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  className="h-6 w-6"
+                  width="29"
+                  height="20"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="2"
+                  viewBox="0 0 24 24"
+                >
                   <path d="M12 5v14M5 12h14" />
                 </svg>
               </button>
 
               {showPopup && (
                 <div className="absolute left-0 top-12 z-10 bg-gray-300 border border-gray-400 rounded-2xl shadow-lg p-4 w-80">
-                  <h3 className="text-gray-700 text-md font-bold mb-3">Item Description</h3>
+                  <h3 className="text-gray-700 text-md font-bold mb-3">
+                    Item Description
+                  </h3>
                   <input
                     value={newItemData.itemDescription}
-                    onChange={(e) => setNewItemData((prev) => ({ ...prev, itemDescription: e.target.value }))}
+                    onChange={(e) =>
+                      setNewItemData((prev) => ({
+                        ...prev,
+                        itemDescription: e.target.value,
+                      }))
+                    }
                     className="w-full px-4 py-2 rounded-full border border-gray-400 bg-white/50 outline-none focus:border-gray-400 focus:shadow-md mb-3"
                     placeholder="Enter item description"
                   />
                   <select
                     value={newItemData.goldPurity}
-                    onChange={(e) => setNewItemData((prev) => ({ ...prev, goldPurity: e.target.value, silverPurity: "", diamondPurity: "" }))}
+                    onChange={(e) =>
+                      setNewItemData((prev) => ({
+                        ...prev,
+                        goldPurity: e.target.value,
+                        silverPurity: "",
+                        diamondPurity: "",
+                      }))
+                    }
                     className="w-full px-4 py-2 rounded-full border border-gray-400 bg-white/50 outline-none focus:border-gray-400 focus:shadow-md mb-3"
                   >
                     <option value="">Gold Purity</option>
@@ -273,7 +399,14 @@ export default function AddProduct() {
                   </select>
                   <select
                     value={newItemData.silverPurity}
-                    onChange={(e) => setNewItemData((prev) => ({ ...prev, silverPurity: e.target.value, goldPurity: "", diamondPurity: "" }))}
+                    onChange={(e) =>
+                      setNewItemData((prev) => ({
+                        ...prev,
+                        silverPurity: e.target.value,
+                        goldPurity: "",
+                        diamondPurity: "",
+                      }))
+                    }
                     className="w-full px-4 py-2 rounded-full border border-gray-400 bg-white/50 outline-none focus:border-gray-400 focus:shadow-md mb-3"
                   >
                     <option value="">Silver Purity</option>
@@ -284,7 +417,14 @@ export default function AddProduct() {
                   </select>
                   <select
                     value={newItemData.diamondPurity}
-                    onChange={(e) => setNewItemData((prev) => ({ ...prev, diamondPurity: e.target.value, goldPurity: "", silverPurity: "" }))}
+                    onChange={(e) =>
+                      setNewItemData((prev) => ({
+                        ...prev,
+                        diamondPurity: e.target.value,
+                        goldPurity: "",
+                        silverPurity: "",
+                      }))
+                    }
                     className="w-full px-4 py-2 rounded-full border border-gray-400 bg-white/50 outline-none focus:border-gray-400 focus:shadow-md mb-3"
                   >
                     <option value="">Diamond Purity</option>
@@ -306,76 +446,164 @@ export default function AddProduct() {
               onClick={deleteItemDescriptions}
               className="text-red-700 p-2"
             >
-              <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                className="h-6 w-6"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth="2"
+                  d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
+                />
               </svg>
             </button>
           </div>
 
           {/* HSN Code */}
           <div className="flex items-center gap-3">
-            <label className="text-gray-700 text-md font-medium w-44">HSN Code</label>
-            <input name="hsnCode" value={productData.hsnCode} onChange={handleChange} className="flex-1 px-4 py-2 rounded-full border border-gray-400 bg-white/50 outline-none focus:border-gray-400 focus:shadow-md" />
+            <label className="text-gray-700 text-md font-medium w-44">
+              HSN Code
+            </label>
+            <input
+              name="hsnCode"
+              value={initialProductData.hsnCode}
+              onChange={handleChange}
+              className="flex-1 px-4 py-2 rounded-full border border-gray-400 bg-white/50 outline-none focus:border-gray-400 focus:shadow-md"
+            />
           </div>
 
           {/* Gross Weight */}
           <div className="flex items-center gap-3">
-            <label className="text-gray-700 text-md font-medium w-44">Gross Weight (Gms.)</label>
-            <input name="grossWeight" value={productData.grossWeight} onChange={handleNumericChange} className="flex-1 px-4 py-2 rounded-full border border-gray-400 bg-white/50 outline-none focus:border-gray-400 focus:shadow-md" />
+            <label className="text-gray-700 text-md font-medium w-44">
+              Gross Weight (Gms.)
+            </label>
+            <input
+              name="grossWeight"
+              // value={initialProductData.grossWeight}
+              onChange={handleNumericChange}
+              className="flex-1 px-4 py-2 rounded-full border border-gray-400 bg-white/50 outline-none focus:border-gray-400 focus:shadow-md"
+            />
           </div>
 
           {/* Stone Weight */}
           <div className="flex items-center gap-3">
-            <label className="text-gray-700 text-md font-medium w-44">Stone Weight (Gms.)</label>
-            <input name="stoneWeight" value={productData.stoneWeight} onChange={handleNumericChange} className="flex-1 px-4 py-2 rounded-full border border-gray-400 bg-white/50 outline-none focus:border-gray-400 focus:shadow-md" />
+            <label className="text-gray-700 text-md font-medium w-44">
+              Stone Weight (Gms.)
+            </label>
+            <input
+              name="stoneWeight"
+              // value={initialProductData.stoneWeight}
+              onChange={handleNumericChange}
+              className="flex-1 px-4 py-2 rounded-full border border-gray-400 bg-white/50 outline-none focus:border-gray-400 focus:shadow-md"
+            />
           </div>
 
           {/* Moti Weight */}
           <div className="flex items-center gap-3">
-            <label className="text-gray-700 text-md font-medium w-44">Moti Weight (Gms.)</label>
-            <input name="motiWeight" value={productData.motiWeight} onChange={handleNumericChange} className="flex-1 px-4 py-2 rounded-full border border-gray-400 bg-white/50 outline-none focus:border-gray-400 focus:shadow-md" />
+            <label className="text-gray-700 text-md font-medium w-44">
+              Moti Weight (Gms.)
+            </label>
+            <input
+              name="motiWeight"
+              // value={initialProductData.motiWeight}
+              onChange={handleNumericChange}
+              className="flex-1 px-4 py-2 rounded-full border border-gray-400 bg-white/50 outline-none focus:border-gray-400 focus:shadow-md"
+            />
           </div>
 
           {/* Diamond Weight */}
           <div className="flex items-center gap-3">
-            <label className="text-gray-700 text-md font-medium w-44">Diamond Weight (Ct.)</label>
-            <input name="diamondWeight" value={productData.diamondWeight} onChange={handleNumericChange} className="flex-1 px-4 py-2 rounded-full border border-gray-400 bg-white/50 outline-none focus:border-gray-400 focus:shadow-md" />
+            <label className="text-gray-700 text-md font-medium w-44">
+              Diamond Weight (Ct.)
+            </label>
+            <input
+              name="diamondWeight"
+              // value={initialProductData.diamondWeight}
+              onChange={handleNumericChange}
+              className="flex-1 px-4 py-2 rounded-full border border-gray-400 bg-white/50 outline-none focus:border-gray-400 focus:shadow-md"
+            />
           </div>
 
           {/* Solitaire Weight */}
           <div className="flex items-center gap-3">
-            <label className="text-gray-700 text-md font-medium w-44">Solitaire Weight (Ct.)</label>
-            <input name="solitaireWeight" value={productData.solitaireWeight} onChange={handleNumericChange} className="flex-1 px-4 py-2 rounded-full border border-gray-400 bg-white/50 outline-none focus:border-gray-400 focus:shadow-md" />
+            <label className="text-gray-700 text-md font-medium w-44">
+              Solitaire Weight (Ct.)
+            </label>
+            <input
+              name="solitaireWeight"
+              // value={initialProductData.solitaireWeight}
+              onChange={handleNumericChange}
+              className="flex-1 px-4 py-2 rounded-full border border-gray-400 bg-white/50 outline-none focus:border-gray-400 focus:shadow-md"
+            />
           </div>
 
           {/* Color Stone */}
           <div className="flex items-center gap-3">
-            <label className="text-gray-700 text-md font-medium w-44">Color Stone (Gms.)</label>
-            <input name="colorStone" value={productData.colorStone} onChange={handleNumericChange} className="flex-1 px-4 py-2 rounded-full border border-gray-400 bg-white/50 outline-none focus:border-gray-400 focus:shadow-md" />
+            <label className="text-gray-700 text-md font-medium w-44">
+              Color Stone (Gms.)
+            </label>
+            <input
+              name="colorStone"
+              // value={initialProductData.colorStone}
+              onChange={handleNumericChange}
+              className="flex-1 px-4 py-2 rounded-full border border-gray-400 bg-white/50 outline-none focus:border-gray-400 focus:shadow-md"
+            />
           </div>
 
           {/* Minna */}
           <div className="flex items-center gap-3">
-            <label className="text-gray-700 text-md font-medium w-44">Minna (Gms.)</label>
-            <input name="minnaWeight" value={productData.minnaWeight} onChange={handleNumericChange} className="flex-1 px-4 py-2 rounded-full border border-gray-400 bg-white/50 outline-none focus:border-gray-400 focus:shadow-md" />
+            <label className="text-gray-700 text-md font-medium w-44">
+              Minna (Gms.)
+            </label>
+            <input
+              name="minnaWeight"
+              // value={initialProductData.minnaWeight}
+              onChange={handleNumericChange}
+              className="flex-1 px-4 py-2 rounded-full border border-gray-400 bg-white/50 outline-none focus:border-gray-400 focus:shadow-md"
+            />
           </div>
 
           {/* Colouring */}
           <div className="flex items-center gap-3">
-            <label className="text-gray-700 text-md font-medium w-44">Colouring (Gms.)</label>
-            <input name="colouring" value={productData.colouring} onChange={handleNumericChange} className="flex-1 px-4 py-2 rounded-full border border-gray-400 bg-white/50 outline-none focus:border-gray-400 focus:shadow-md" />
+            <label className="text-gray-700 text-md font-medium w-44">
+              Colouring (Gms.)
+            </label>
+            <input
+              name="colouring"
+              // value={initialProductData.colouring}
+              onChange={handleNumericChange}
+              className="flex-1 px-4 py-2 rounded-full border border-gray-400 bg-white/50 outline-none focus:border-gray-400 focus:shadow-md"
+            />
           </div>
 
           {/* Net Weight */}
           <div className="flex items-center gap-3">
-            <label className="text-gray-700 text-md font-medium w-44">Net Weight (Gms.)</label>
-            <input name="netWeight" value={productData.netWeight} onChange={handleNumericChange} className="flex-1 px-4 py-2 rounded-full border border-gray-400 bg-white/50 outline-none focus:border-gray-400 focus:shadow-md" />
+            <label className="text-gray-700 text-md font-medium w-44">
+              Net Weight (Gms.)
+            </label>
+            <input
+              name="netWeight"
+              value={netWeight}
+              onChange={handleNumericChange}
+              className="flex-1 px-4 py-2 rounded-full border border-gray-400 bg-white/50 outline-none focus:border-gray-400 focus:shadow-md"
+            />
           </div>
 
           {/* Price */}
           <div className="flex items-center gap-3">
-            <label className="text-gray-700 text-md font-medium w-44">Price (₹)</label>
-            <input name="price" value={productData.price || ""} onChange={handleNumericChange} className="flex-1 px-4 py-2 rounded-full border border-gray-400 bg-white/50 outline-none focus:border-gray-400 focus:shadow-md" />
+            <label className="text-gray-700 text-md font-medium w-44">
+              Price (₹)
+            </label>
+            <input
+              name="price"
+              // value={initialProductData.price || ""}
+              onChange={handleNumericChange}
+              className="flex-1 px-4 py-2 rounded-full border border-gray-400 bg-white/50 outline-none focus:border-gray-400 focus:shadow-md"
+            />
           </div>
 
           <div className="mt-2 flex justify-end">

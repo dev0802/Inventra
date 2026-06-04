@@ -88,6 +88,7 @@ export default function Report() {
       clQtyAlt: 0,
     },
   );
+  
   const totalSales = salesData.reduce(
     (acc, item) => ({
         itemsCount: item.is_main_item ? acc.itemsCount + 1 : acc.itemsCount,
@@ -102,7 +103,8 @@ export default function Report() {
         amount: 0,
     },
 );
-  const handleExportToExcel = () => {
+  
+const handleExportToExcel = () => {
     if (!stockData.length) {
       showNotification("error", "Error", "No data to export!");
       return;
@@ -186,7 +188,6 @@ export default function Report() {
       );
     }
 
-    // showNotification("success", "Success", "Report generated successfully!");
   };
   const handleSalesReportPdf = async() => {
     if (!salesData.length) {
@@ -291,7 +292,7 @@ export default function Report() {
                 onClick={handleGenerateReport}
                 className="text-white text-sm hover:shadow-xl shadow-gray-700 font-semibold px-4 py-2 rounded-full border border-white/40 bg-gradient-to-r from-gray-600 to-gray-700 hover:from-gray-700 hover:to-gray-800 transition-all duration-200"
               >
-                Generate Consolidated Report
+                View Consolidated Report
               </button>
             </div>
             <div className="flex gap-2">
@@ -299,11 +300,15 @@ export default function Report() {
                 onClick={handleShowSalesReport}
                 className="text-white text-sm hover:shadow-xl shadow-gray-700 font-semibold px-4 py-2 rounded-full border border-white/40 bg-gradient-to-r from-gray-600 to-gray-700 hover:from-gray-700 hover:to-gray-800 transition-all duration-200"
               >
-                Sales Report
+                View Sales Report
               </button>
             </div>
           </div>
-
+          <div className="bg-gray-300 text-gray-700 p-3 rounded-md shadow-inner">
+            <h2 className="text-xl font-bold text-gray-800 text-center">
+              {showSalesReport ? "Sales Report" : "Consolidated Report"}
+            </h2>
+            </div>
           {/* Stock Report Table */}
           {!showSalesReport && (
             <div className="overflow-x-auto overflow-y-auto max-h-[60vh]">
