@@ -34,7 +34,7 @@ export default function AddProduct() {
     diamondPurity: "",
   });
 
-  const [netWeight, setNetWeight] = useState(0);
+  const [netWeight, setNetWeight] = useState("");
   const [itemDescriptions, setItemDescriptions] = useState([]);
   const [selectItemDescription, setSelectItemDescription] = useState("");
   // const [productData, setProductData] = useState({
@@ -169,21 +169,6 @@ export default function AddProduct() {
       value = parts[0] + "." + parts[1].slice(0, decimals);
     }
 
-    // initialProductData(prev => {
-    //   const updated = { ...prev, [e.target.name]: value };
-    //   const netWeight =
-    //     (parseFloat(updated.grossWeight) || 0) -
-    //     ((parseFloat(updated.stoneWeight) || 0) +
-    //       (parseFloat(updated.motiWeight) || 0) +
-    //       (parseFloat(updated.diamondWeight) || 0) / 5 +
-    //       (parseFloat(updated.solitaireWeight) || 0) / 5 +
-    //       (parseFloat(updated.colorStone) || 0) +
-    //       (parseFloat(updated.minnaWeight) || 0) +
-    //       (parseFloat(updated.colouring) || 0));
-    //   return {
-    //     ...updated,
-    //     netWeight: netWeight >= 0 ? parseFloat(netWeight.toFixed(3)) : 0,
-    //   };
     initialProductData[e.target.name] = value;
     const calculationNetWeight =
       (parseFloat(initialProductData.grossWeight) || 0) -
@@ -251,7 +236,7 @@ export default function AddProduct() {
   };
 
   const handleReset = () => {
-    setSelectItemDescription(itemDescriptions[itemDescriptions.length - 1] || "");
+    initialProductData.itemDescription = selectItemDescription;
     initialProductData.hsnCode = "7113";
     initialProductData.grossWeight = "";
     initialProductData.stoneWeight = "";
@@ -265,7 +250,7 @@ export default function AddProduct() {
     initialProductData.purchasedDate = "";
     initialProductData.saleDate = "";
     initialProductData.price = "";
-    setNetWeight(0);
+    setNetWeight("");
 
     const fields = [
       "itemDescription",

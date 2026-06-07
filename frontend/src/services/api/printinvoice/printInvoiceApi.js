@@ -160,3 +160,16 @@ export const deleteInvoice = async (invoice_id) => {
   if (!response.ok) throw new Error(data.message || "Delete failed");
   return data;
 };
+
+export const generalInvoice = async ({ rows, invoice_date }) => {
+  const response = await fetch(`${process.env.REACT_APP_API_GENERAL_INVOICE}`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ rows, invoice_date }),
+  });
+  const data = await response.json();
+  if (!response.ok) {
+    throw new Error(data.error || 'General invoice generation error');
+  }
+  return data;
+};

@@ -67,11 +67,8 @@ export default function ViewProduct() {
   };
 
   const toggleSelect = (id) => {
-    setSelectedIds(
-      (prev) =>
-        prev.includes(id)
-          ? prev.filter((x) => x !== id)
-          : [...prev, id],
+    setSelectedIds((prev) =>
+      prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id],
     );
   };
 
@@ -88,54 +85,62 @@ export default function ViewProduct() {
   );
 
   const handlePrintLabels = async () => {
-    const printArea = document.getElementById("labels-print-area");
-    if (!printArea) return;
+    if (selectedProducts.length === 0) return;
 
-    const canvas = await html2canvas(printArea, {
-      scale: 2,
-      useCORS: true,
-      backgroundColor: "#ffffff",
-    });
+    const printSequential = async (index) => {
+      if (index >= selectedProducts.length) return;
 
-    const imgData = canvas.toDataURL("image/png");
-    const imgWidth = canvas.width;
-    const imgHeight = canvas.height;
+      const printArea = document.getElementById(
+        `label-${selectedProducts[index].product_id}`,
+      );
+      if (!printArea) {
+        printSequential(index + 1);
+        return;
+      }
 
-    const printWindow = window.open("", "_blank");
-    printWindow.document.write(`
-    <html>
-      <head>
-        <title>Print Labels</title>
-        <style>
-          @page {
-            size: ${imgWidth / 2}px ${imgHeight / 2}px;
-            margin: 0;
-          }
-          * { margin: 0; padding: 0; box-sizing: border-box; }
-          body {
-            margin: 0;
-            background: white;
-            -webkit-print-color-adjust: exact;
-            print-color-adjust: exact;
-          }
-          img {
-            width: ${imgWidth / 2}px;
-            height: ${imgHeight / 2}px;
-            display: block;
-          }
-        </style>
-      </head>
-      <body>
-        <img src="${imgData}" />
-        <script>
-          window.onload = function() {
-            window.print();
-            window.onafterprint = function() { window.close(); };
-          };
-        </script>
-      </body>
-    </html>
-  `);
+      const canvas = await html2canvas(printArea, {
+        scale: 2,
+        useCORS: true,
+        backgroundColor: "#ffffff",
+      });
+
+      const imgData = canvas.toDataURL("image/png");
+      const imgWidth = canvas.width;
+      const imgHeight = canvas.height;
+
+      const printWindow = window.open("", "_blank");
+      printWindow.document.write(`
+      <html>
+        <head>
+          <title>Label ${index + 1}</title>
+          <style>
+            @page { size: ${imgWidth / 2}px ${imgHeight / 2}px; margin: 0; }
+            * { margin: 0; padding: 0; box-sizing: border-box; }
+            body { margin: 0; background: white; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+            img { width: ${imgWidth / 2}px; height: ${imgHeight / 2}px; display: block; }
+          </style>
+        </head>
+        <body>
+          <img src="${imgData}" />
+          <script>
+            window.onload = function() {
+              window.print();
+              window.onafterprint = function() { window.close(); };
+            };
+          </script>
+        </body>
+      </html>
+    `);
+    printWindow.document.close();
+      const checkClosed = setInterval(() => {
+        if (printWindow.closed) {
+          clearInterval(checkClosed);
+          printSequential(index + 1);
+        }
+      }, 500);
+    };
+
+    printSequential(0);
   };
 
   const handleFilter = (e) => {
@@ -628,20 +633,26 @@ export default function ViewProduct() {
                 className="flex flex-wrap gap-3 p-3 bg-gray-50 rounded-xl"
               >
                 {selectedProducts.map((product) => (
-                  <JewelleryLabel
+                  <div
+                    id={`label-${product.product_id}`}
                     key={product.product_id}
-                    itemDescription={product.item_description}
-                    grossWeight={parseFloat(product.gross_weight) || 0}
-                    stoneWeight={parseFloat(product.stone_weight) || 0}
-                    motiWeight={parseFloat(product.moti_weight) || 0}
-                    diamondWeight={parseFloat(product.diamond_weight) || 0}
-                    solitaireWeight={parseFloat(product.solitaire_weight) || 0}
-                    colorStone={parseFloat(product.color_stone) || 0}
-                    minnaWeight={parseFloat(product.minna_weight) || 0}
-                    colouring={parseFloat(product.colouring) || 0}
-                    netWeight={parseFloat(product.net_weight) || 0}
-                    itemCode={String(product.item_code)}
-                  />
+                  >
+                    <JewelleryLabel
+                      itemDescription={product.item_description}
+                      grossWeight={parseFloat(product.gross_weight) || 0}
+                      stoneWeight={parseFloat(product.stone_weight) || 0}
+                      motiWeight={parseFloat(product.moti_weight) || 0}
+                      diamondWeight={parseFloat(product.diamond_weight) || 0}
+                      solitaireWeight={
+                        parseFloat(product.solitaire_weight) || 0
+                      }
+                      colorStone={parseFloat(product.color_stone) || 0}
+                      minnaWeight={parseFloat(product.minna_weight) || 0}
+                      colouring={parseFloat(product.colouring) || 0}
+                      netWeight={parseFloat(product.net_weight) || 0}
+                      itemCode={String(product.item_code)}
+                    />
+                  </div>
                 ))}
               </div>
 

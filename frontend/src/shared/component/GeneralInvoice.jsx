@@ -170,14 +170,14 @@ const S = StyleSheet.create({
   },
 });
 
-export default function InvoicePdf({
+export default function GeneralInvoice({
   customerData,
   rows,
   invoiceNumber,
   invoiceDate,
   cgstRate = 1.5,
   sgstRate = 1.5,
-  goldInvoice
+  goldInvoice,
 }) {
   const PhoneIcon = () => (
     <Svg width="8" height="8" viewBox="0 0 24 24">
@@ -270,8 +270,11 @@ export default function InvoicePdf({
     const baseAmt = qty * rate;
     const makingPct = parseFloat(row.makingCharges) || 0;
     const makingAmt =
-      row.unit === "Gms." && row.unitPrice === true && makingPct !== 0 ? Math.round((baseAmt * makingPct) / 100) : null;
-    const lineTotal = row.unit === "Ct." || row.unitPrice !== true ? rate : baseAmt + makingAmt;
+      row.unit === "Gms." && row.unitPrice === true && makingPct !== 0
+        ? Math.round((baseAmt * makingPct) / 100)
+        : null;
+    const lineTotal =
+      row.unit === "Ct." || row.unitPrice !== true ? rate : baseAmt + makingAmt;
     return { ...row, baseAmt, makingAmt, lineTotal };
   });
 
@@ -290,7 +293,7 @@ export default function InvoicePdf({
   const placeOfSupply = "Punjab (03)";
 
   // ── S No counter (sirf main items) ──
-  let snoCounter = 0;
+//   let snoCounter = 0;
 
   return (
     <Document>
@@ -299,7 +302,7 @@ export default function InvoicePdf({
         <View style={{ flexDirection: "row", marginBottom: 5 }}>
           {/* Left - Logo only, white bg */}
           <View style={S.headerLeft}>
-            <Image src={logo} style={{ width: 40  , height: 40 }} />
+            <Image src={logo} style={{ width: 40, height: 40 }} />
           </View>
 
           {/* Right - Golden bg, red text, golden borders top/bottom */}
@@ -336,13 +339,13 @@ export default function InvoicePdf({
             <Text style={S.billLabel}>Billed To</Text>
 
             {name ? <Text style={S.billValue}>{name}</Text> : null}
-            
+
             {address ? <Text style={S.billValue}>{address}</Text> : null}
-            
+
             {phone ? <Text style={S.billValue}>{phone}</Text> : null}
-            
+
             {email ? <Text style={S.billValue}>{email}</Text> : null}
-            
+
             {custGstin ? (
               <Text style={S.billValue}>GSTIN: {custGstin}</Text>
             ) : null}
@@ -351,11 +354,11 @@ export default function InvoicePdf({
           <View style={S.metaRight}>
             <View style={S.metaLine}>
               <Text style={S.metaKey}>Invoice number:</Text>
-              <Text style={S.metaVal}>{invoiceNumber}</Text>
+              <Text style={S.metaVal}>GN_{invoiceNumber}</Text>
             </View>
             <View style={S.metaLine}>
               <Text style={S.metaKey}>Invoice Date:</Text>
-              
+
               <Text style={S.metaVal}>{formatDate(invoiceDate)}</Text>
             </View>
             <View style={S.metaLine}>
@@ -380,18 +383,29 @@ export default function InvoicePdf({
           </View>
 
           {computed.map((row, idx) => {
-            const isMain = !isNaN(Number(row.code)) && 
-               row.code !== "" && 
-               row.code !== null &&
-               row.code !== undefined;
-            
-            if (isMain) snoCounter++;
+            const stoneKeywords = [
+              "STONES",
+              "DIAMOND",
+              "SOLITAIRE",
+              "MINNA",
+              "MOTI",
+              "COLOR STONE",
+            ];
+            const desc = (row.itemDescription || "").toUpperCase();
+            const isMain = !stoneKeywords.some((k) => desc.includes(k));
+
+            const sno = isMain
+              ? computed.slice(0, idx + 1).filter((r) => {
+                  const d = (r.itemDescription || "").toUpperCase();
+                  return !stoneKeywords.some((k) => d.includes(k));
+                }).length
+              : 0;
             return (
               <View
                 key={row.id || idx}
                 style={idx === computed.length - 1 ? S.trowLast : S.trow}
               >
-                <Text style={[S.td, S.cSno]}>{isMain ? snoCounter : ""}</Text>
+                <Text style={[S.td, S.cSno]}>{isMain ? sno : ""}</Text>
                 <Text style={[S.td, S.cDesc, S.bl]}>{row.itemDescription}</Text>
                 <Text style={[S.td, S.cHsn, S.bl]}>{row.hsnCode}</Text>
                 <Text style={[S.td, S.cQty, S.bl]}>

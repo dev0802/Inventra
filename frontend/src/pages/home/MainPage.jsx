@@ -18,11 +18,12 @@ import {
 } from "../../services/api/printinvoice/printInvoiceApi";
 import DuplicateInvoiceCopyPdf from "../../shared/component/DuplicateInvoiceCopyPdf";
 import InvoicePdf from "../../shared/component/InvoicePdf";
-export default function MainPage({ setIsLoggedIn }) {
+export default function MainPage({ setIsLoggedIn, manualInvoice, setManualInvoice }) {
   const navigate = useNavigate();
   const todayDate = () => {
-    const today = new Date().toISOString().split("T")[0];
-    return today;
+    const now = new Date();
+  const istOffset = 5.5 * 60 * 60 * 1000;
+  return new Date(now.getTime() + istOffset).toISOString().split("T")[0];
   };
 
   const [showSettingDropdown, setShowSettingDropdown] = useState(false);
@@ -61,7 +62,7 @@ export default function MainPage({ setIsLoggedIn }) {
           setUserName(response.user.userName);
         } else {
           setIsLoggedIn(false);
-          navigate("/main/printinvoice");
+          navigate("/");
         }
       } catch (error) {
         console.error("Session check failed:", error);
@@ -103,6 +104,7 @@ export default function MainPage({ setIsLoggedIn }) {
           };
           const isToday =
             latestGoldRate.rate_date?.split("T")[0] === todayDate();
+            console.log("date from backend", latestGoldRate.rate_date?.split("T")[0], "today's date", todayDate(), "isToday:", isToday);
           if (isToday) {
             setGoldRateData({
               goldRate24K: latestGoldRate.gold_rate_24k,
@@ -118,6 +120,7 @@ export default function MainPage({ setIsLoggedIn }) {
               todayGold14K: latestGoldRate.gold_rate_14k,
             });
           }
+          
           setTodayGoldRate({
             todayGold24K: latestGoldRate.gold_rate_24k,
             todayGold22K: latestGoldRate.gold_rate_22k,
@@ -126,7 +129,8 @@ export default function MainPage({ setIsLoggedIn }) {
           });
 
           setGoldRateData({ ...rateObj, rateDate: todayDate() });
-        }
+        
+      }
       } catch (error) {
         console.error("Error fetching gold rate:", error);
       }
@@ -534,9 +538,10 @@ export default function MainPage({ setIsLoggedIn }) {
                   Update Invoice
                 </button>
                 <button
-                  // onClick={() => {
-                  //   setShowSettings(true);
-                  // }}
+                  onClick={() => {
+                    setManualInvoice(true);
+                    setShowSettingDropdown(false);
+                  }}
                   className="w-full text-left px-4 py-2 text-sm text-white hover:bg-gray-400 "
                 >
                   Manual Invoice

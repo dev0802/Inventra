@@ -170,7 +170,7 @@ const S = StyleSheet.create({
   },
 });
 
-export default function InvoicePdf({
+export default function ManualInvoice({
   customerData,
   rows,
   invoiceNumber,
