@@ -107,9 +107,7 @@ exports.getProductByItemCode = async (itemCode) => {
 };
 
 exports.saveItemDetail = async (rows) => {
-
-  
-   console.log("RECEIVED ROWS:", JSON.stringify(rows, null, 2));
+  console.log("RECEIVED ROWS:", JSON.stringify(rows, null, 2));
   console.log("ROWS COUNT:", rows.length);
   const lastItem = await Pool.query(
     "SELECT group_code FROM itemdetail ORDER BY item_id DESC LIMIT 1",
@@ -228,12 +226,10 @@ exports.saveInvoice = async ({ customer_id, group_code, invoice_date }) => {
     throw new Error("Items Not Found");
   }
 
-  
   const items = itemsResult.rows.map((row, idx) => {
     const baseAmt = row.rate
       ? parseFloat(row.quantity) * parseFloat(row.rate)
       : 0;
-// const isMainItem = JSON.parse(String(row.unit_price));
     return {
       item_description: row.item_description,
       hsn_code: row.hsn_code,
@@ -327,3 +323,47 @@ exports.deleteInvoice = async (invoice_id) => {
   if (result.rows.length === 0) throw new Error("Invoice not found");
   return result.rows[0];
 };
+
+exports.generateInvoice = async (rows, invoice_date) => {
+  try {
+    const lastResult = await Pool.query(
+      `SELECT general_invoice_number FROM generalinvoice ORDER BY general_invoice_number DESC LIMIT 1`
+    );
+    console.log("Last result:", lastResult.rows); // ADD
+    
+    const lastNumber = lastResult.rows[0]?.general_invoice_number || 0;
+    const generalInvoiceNumber = lastNumber + 1;
+    
+    const items = rows.map(row => row.itemDescription || row.item_description || "").join(", ");
+    console.log("Items:", items, "InvoiceNumber:", generalInvoiceNumber, "Date:", invoice_date); // ADD
+    
+    const result = await Pool.query(
+      `INSERT INTO generalinvoice (general_invoice_number, items, total_amount, invoice_date) 
+       VALUES ($1, $2, $3, $4) RETURNING *`,
+      [generalInvoiceNumber, items, 0, invoice_date]
+    );
+    
+    return {
+      general_invoice_number: result.rows[0].general_invoice_number,
+      items: rows,
+      invoice_date: result.rows[0].invoice_date
+    };
+  } catch(err) {
+    console.error("SERVICE ERROR:", err.message); // ADD
+    throw err;
+  }
+};
+
+// exports.generateInvoice = async(rows, invoice_date) => {
+//   const lastResult = await Pool.query(
+//     `SELECT general_invoice_number FROM generalinvoice ORDER BY general_invoice_number DESC LIMIT 1`
+//   );
+//   const lastNumber = lastResult.rows[0]?.general_invoice_number || 0;
+//   const generalInvoiceNumber = lastNumber + 1;
+//   const items = "item : " + rows.map(row => row.item_description).join(", ") + "hsn : " + rows.map(row => row.hsn_code).join(", ") + "quantity : " + rows.map(row => row.quantity).join(", ") + "rate : " + rows.map(row => row.rate).join(", ") + "unit_price : " + rows.map(row => row.unit_price).join(", ") + "making_charges : " + rows.map(row => row.making_charges).join(", ");
+//   const result = await Pool.query(
+//     `INSERT INTO generalinvoice (general_invoice_number, items, total_amount, invoice_date) VALUES ($1, $2, $3, $4) RETURNING *`,
+//     [generalInvoiceNumber, items, 0, invoice_date]
+//   );
+//   return result.rows[0];
+// };

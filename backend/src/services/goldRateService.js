@@ -9,7 +9,7 @@ exports.setGoldRate = async (goldRateData) => {
 };
 
 exports.getLatestGoldRate = async () => {
-  const query = `SELECT * FROM goldrate ORDER BY rate_date DESC LIMIT 1`;
+  const query = `SELECT * FROM goldrate ORDER BY rate_date DESC, gold_rate_id DESC LIMIT 1`;
   const result = await Pool.query(query);
   return result.rows[0];
 };

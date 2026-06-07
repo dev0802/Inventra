@@ -140,3 +140,17 @@ exports.deleteInvoice = async (req, res) => {
     res.status(500).json({ message: "Internal Server Error" });
   }
 };
+
+exports.generateInvoice = async (req, res) => {
+  try {
+    const { rows, invoice_date} = req.body;
+    console.log("REQ BODY:", JSON.stringify(req.body, null, 2));
+    const result = await printInvoiceService.generateInvoice(rows, invoice_date);
+    res.status(200).json(result);
+  } catch (error) {
+    if (error.message === "Invoice not found") {
+      return res.status(404).json({ message: error.message });
+    }
+    res.status(500).json({ message: "Internal Server Error" });
+  }
+};
