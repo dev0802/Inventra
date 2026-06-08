@@ -6,7 +6,7 @@ import {
   getProductByItemCode,
   saveItemDetail,
   saveInvoice,
-  generalInvoice
+  generalInvoice,
 } from "../../services/api/printinvoice/printInvoiceApi";
 import { getItemDescriptions } from "../../services/productFeatureApi/addProductApi";
 import { getGoldRateByDateApi } from "../../services/api/goldrate/goldRateApi";
@@ -163,7 +163,6 @@ export default function PrintInvoice({ manualInvoice, setManualInvoice }) {
   };
 
   const handleRowChange = (id, field, value) => {
-    
     setRows((prev) =>
       prev.map((row) => (row.id === id ? { ...row, [field]: value } : row)),
     );
@@ -287,7 +286,7 @@ export default function PrintInvoice({ manualInvoice, setManualInvoice }) {
     };
     fetchInitial();
   }, []);
-  
+
   const formatDate = (dateStr) => {
     if (!dateStr) return "";
     const date = new Date(dateStr);
@@ -400,8 +399,6 @@ export default function PrintInvoice({ manualInvoice, setManualInvoice }) {
       console.error("Update error:", error);
     }
   };
-
-  
 
   const generateId = () => crypto.randomUUID();
 
@@ -558,7 +555,7 @@ export default function PrintInvoice({ manualInvoice, setManualInvoice }) {
       const result = await generalInvoice({ rows, invoice_date });
       const blob = await pdf(
         <GeneralInvoice
-          customerData = {customerData}
+          customerData={customerData}
           rows={result.items}
           invoiceNumber={result.general_invoice_number}
           invoiceDate={result.invoice_date}
@@ -650,12 +647,12 @@ export default function PrintInvoice({ manualInvoice, setManualInvoice }) {
         group_code,
         invoice_date: today,
       });
-      let invoiceNumber = 0;
+
       const blob = await pdf(
         <ManualInvoice
           customerData={saved.customer}
           rows={saved.items}
-          invoiceNumber={manualInvoice ? "MANUAL-" + invoiceNumber + 1 : ""}
+          invoiceNumber={saved.display_number}
           invoiceDate={saved.invoice_date}
           cgstRate={includeGST ? 1.5 : 0}
           sgstRate={includeGST ? 1.5 : 0}
@@ -1252,13 +1249,18 @@ export default function PrintInvoice({ manualInvoice, setManualInvoice }) {
               <button
                 type="button"
                 onClick={() => {
-  const allEmpty = rows.every(row => !row.itemCode || row.itemCode.trim() === "");
-  if (allEmpty) {
-    handleGenerateInvoice(rows, new Date().toISOString().split("T")[0]);
-  } else {
-    handlePrintInvoice();
-  }
-}}
+                  const allEmpty = rows.every(
+                    (row) => !row.itemCode || row.itemCode.trim() === "",
+                  );
+                  if (allEmpty) {
+                    handleGenerateInvoice(
+                      rows,
+                      new Date().toISOString().split("T")[0],
+                    );
+                  } else {
+                    handlePrintInvoice();
+                  }
+                }}
                 className="text-white text-sm hover:shadow-xl shadow-gray-700 font-semibold px-4 py-2 rounded-full border border-white/40 bg-gradient-to-r from-gray-600 to-gray-700 hover:from-gray-700 hover:to-gray-800 transition-all duration-200"
               >
                 Print Invoice

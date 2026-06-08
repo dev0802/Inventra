@@ -358,7 +358,6 @@ export default function GeneralInvoice({
             </View>
             <View style={S.metaLine}>
               <Text style={S.metaKey}>Invoice Date:</Text>
-
               <Text style={S.metaVal}>{formatDate(invoiceDate)}</Text>
             </View>
             <View style={S.metaLine}>

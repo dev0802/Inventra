@@ -134,10 +134,10 @@ exports.saveItemDetail = async (rows) => {
     allGroupCode.push(groupCode);
     const itemCode = group[0].itemCode;
     if (itemCode) {
-      const today = new Date().toISOString().split('T')[0];
+      const today = new Date().toISOString().split("T")[0];
       await Pool.query(
         `UPDATE productdetail SET is_sold = true, sale_date = $1 WHERE item_code = $2`,
-        [today, itemCode]
+        [today, itemCode],
       );
     }
 
@@ -149,7 +149,11 @@ exports.saveItemDetail = async (rows) => {
                  VALUES ($1, $2, $3, $4, $5, $6, $7, $8)`,
         [
           row.itemDescription,
-          i === 0 ? String(groupCode) : crypto.randomUUID(),
+          i === 0
+            ? row.itemCode
+              ? String(groupCode)
+              : `Manual_Item_${crypto.randomUUID()}`
+            : crypto.randomUUID(),
           groupCode,
           row.hsnCode,
           row.quantity,
@@ -185,8 +189,18 @@ exports.getNextInvoiceNumber = async (financial_year) => {
   return lastNumber ? lastNumber + 1 : 1;
 };
 
-exports.saveInvoice = async ({ customer_id, group_code, invoice_date }) => {
+exports.getNextManualInvoiceNumber = async (financial_year) => {
+  const result = await Pool.query(
+    `SELECT MAX(invoice_number) AS last_number
+     FROM printinvoice
+     WHERE financial_year = $1`,
+    [financial_year],
+  );
+  const lastNumber = result.rows[0].last_number;
+  return lastNumber ? lastNumber + 1 : 1;
+};
 
+exports.saveInvoice = async ({ customer_id, group_code, invoice_date }) => {
   const custResult = await Pool.query(
     `SELECT
         customer_name, phone_no1, phone_no2, email, address, address_district, address_state, address_pincode
@@ -227,6 +241,7 @@ exports.saveInvoice = async ({ customer_id, group_code, invoice_date }) => {
   }
 
   const items = itemsResult.rows.map((row, idx) => {
+    const isManual = row.code && row.code.toString().startsWith("Manual_Item_");
     const baseAmt = row.rate
       ? parseFloat(row.quantity) * parseFloat(row.rate)
       : 0;
@@ -244,20 +259,29 @@ exports.saveInvoice = async ({ customer_id, group_code, invoice_date }) => {
           ? Math.round((baseAmt * parseFloat(row.making_charges)) / 100)
           : null,
       amount: Math.round(baseAmt),
-      is_main_item: !isNaN(Number(row.code)) && row.code !== "",
-      };
-      console.log("isNaN check:", isNaN(Number(row.code)));
-      console.log("CODE VALUE:", row.code, "TYPE:", typeof row.code);
+      is_main_item: isManual
+        ? true
+        : !isNaN(Number(row.code)) && row.code !== "",
+    };
+    console.log("isNaN check:", isNaN(Number(row.code)));
+    console.log("CODE VALUE:", row.code, "TYPE:", typeof row.code);
   });
   console.log("Items Data:", JSON.stringify(items, null, 2));
 
   const totalAmount = items.reduce((sum, item) => {
     return item.is_main_item ? sum + (parseFloat(item.amount) || 0) : sum;
   }, 0);
-
+  const is_manual = items.some(item => item.code?.toString().startsWith("Manual_Item_"));
   const date = new Date(invoice_date);
   const financial_year = exports.getFinancialYear(date);
-  const invoice_number = await exports.getNextInvoiceNumber(financial_year);
+  // const invoice_number = await exports.getNextInvoiceNumber(financial_year);
+  const invoice_number = is_manual
+    ? await exports.getNextManualInvoiceNumber(financial_year)
+    : await exports.getNextInvoiceNumber(financial_year);
+
+  const display_number = is_manual
+    ? `M-${invoice_number}`
+    : `${invoice_number}`;
 
   const result = await Pool.query(
     `INSERT INTO printinvoice 
@@ -279,14 +303,18 @@ exports.saveInvoice = async ({ customer_id, group_code, invoice_date }) => {
     invoice_number: saved.invoice_number,
     invoice_date: saved.invoice_date,
     financial_year: saved.financial_year,
-    display_number: `${saved.invoice_number}`,
+    display_number: display_number,
     customer: customer,
-    items: items
+    items: items,
   };
 };
 
 exports.getInvoiceByNumberAndFY = async (invoice_number, financial_year) => {
-  console.log("Received:", { invoice_number, financial_year, type: typeof invoice_number });
+  console.log("Received:", {
+    invoice_number,
+    financial_year,
+    type: typeof invoice_number,
+  });
 
   const result = await Pool.query(
     `SELECT invoice_id, customer, items, invoice_number, invoice_date, 
@@ -294,7 +322,7 @@ exports.getInvoiceByNumberAndFY = async (invoice_number, financial_year) => {
             invoice_number
      FROM printinvoice
      WHERE invoice_number = $1 AND financial_year = $2`,
-    [Number(invoice_number), financial_year.trim()]
+    [Number(invoice_number), financial_year.trim()],
   );
 
   console.log("Rows found:", result.rows.length);
@@ -309,7 +337,12 @@ exports.updateInvoice = async (invoice_number, data) => {
      SET customer = $1, items = $2, invoice_date = $3
      WHERE invoice_number = $4
      RETURNING *`,
-    [JSON.stringify(data.customer), JSON.stringify(data.items), data.invoice_date, Number(invoice_number)]
+    [
+      JSON.stringify(data.customer),
+      JSON.stringify(data.items),
+      data.invoice_date,
+      Number(invoice_number),
+    ],
   );
   if (result.rows.length === 0) throw new Error("Invoice not found");
   return result.rows[0];
@@ -318,7 +351,7 @@ exports.updateInvoice = async (invoice_number, data) => {
 exports.deleteInvoice = async (invoice_id) => {
   const result = await Pool.query(
     `DELETE FROM printinvoice WHERE invoice_id = $1 RETURNING *`,
-    [Number(invoice_id)]
+    [Number(invoice_id)],
   );
   if (result.rows.length === 0) throw new Error("Invoice not found");
   return result.rows[0];
@@ -327,28 +360,37 @@ exports.deleteInvoice = async (invoice_id) => {
 exports.generateInvoice = async (rows, invoice_date) => {
   try {
     const lastResult = await Pool.query(
-      `SELECT general_invoice_number FROM generalinvoice ORDER BY general_invoice_number DESC LIMIT 1`
+      `SELECT general_invoice_number FROM generalinvoice ORDER BY general_invoice_number DESC LIMIT 1`,
     );
     console.log("Last result:", lastResult.rows); // ADD
-    
+
     const lastNumber = lastResult.rows[0]?.general_invoice_number || 0;
     const generalInvoiceNumber = lastNumber + 1;
-    
-    const items = rows.map(row => row.itemDescription || row.item_description || "").join(", ");
-    console.log("Items:", items, "InvoiceNumber:", generalInvoiceNumber, "Date:", invoice_date); // ADD
-    
+
+    const items = rows
+      .map((row) => row.itemDescription || row.item_description || "")
+      .join(", ");
+    console.log(
+      "Items:",
+      items,
+      "InvoiceNumber:",
+      generalInvoiceNumber,
+      "Date:",
+      invoice_date,
+    ); // ADD
+
     const result = await Pool.query(
       `INSERT INTO generalinvoice (general_invoice_number, items, total_amount, invoice_date) 
        VALUES ($1, $2, $3, $4) RETURNING *`,
-      [generalInvoiceNumber, items, 0, invoice_date]
+      [generalInvoiceNumber, items, 0, invoice_date],
     );
-    
+
     return {
       general_invoice_number: result.rows[0].general_invoice_number,
       items: rows,
-      invoice_date: result.rows[0].invoice_date
+      invoice_date: result.rows[0].invoice_date,
     };
-  } catch(err) {
+  } catch (err) {
     console.error("SERVICE ERROR:", err.message); // ADD
     throw err;
   }

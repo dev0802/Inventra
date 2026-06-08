@@ -289,9 +289,6 @@ export default function ManualInvoice({
 
   const placeOfSupply = "Punjab (03)";
 
-  // ── S No counter (sirf main items) ──
-  let snoCounter = 0;
-
   return (
     <Document>
       <Page size="A4" style={S.page}>
@@ -380,18 +377,29 @@ export default function ManualInvoice({
           </View>
 
           {computed.map((row, idx) => {
-            const isMain = !isNaN(Number(row.code)) && 
-               row.code !== "" && 
-               row.code !== null &&
-               row.code !== undefined;
-            
-            if (isMain) snoCounter++;
+            const stoneKeywords = [
+              "STONES",
+              "DIAMOND",
+              "SOLITAIRE",
+              "MINNA",
+              "MOTI",
+              "COLOR STONE",
+            ];
+            const desc = (row.itemDescription || "").toUpperCase();
+            const isMain = !stoneKeywords.some((k) => desc.includes(k));
+
+            const sno = isMain
+              ? computed.slice(0, idx + 1).filter((r) => {
+                  const d = (r.itemDescription || "").toUpperCase();
+                  return !stoneKeywords.some((k) => d.includes(k));
+                }).length
+              : 0;
             return (
               <View
                 key={row.id || idx}
                 style={idx === computed.length - 1 ? S.trowLast : S.trow}
               >
-                <Text style={[S.td, S.cSno]}>{isMain ? snoCounter : ""}</Text>
+                <Text style={[S.td, S.cSno]}>{isMain ? sno : ""}</Text>
                 <Text style={[S.td, S.cDesc, S.bl]}>{row.itemDescription}</Text>
                 <Text style={[S.td, S.cHsn, S.bl]}>{row.hsnCode}</Text>
                 <Text style={[S.td, S.cQty, S.bl]}>
