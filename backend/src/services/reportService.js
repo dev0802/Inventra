@@ -88,6 +88,7 @@ exports.getSalesReport = async (fromDate, toDate) => {
         p.invoice_number,
         item->>'item_description' AS item_description,
         NULLIF(item->>'quantity', '')::numeric AS quantity,
+        NULLIF(item->>'unit', '') AS unit,
         NULLIF(item->>'rate', '')::numeric AS rate,
         (NULLIF(item->>'quantity', '')::numeric * NULLIF(item->>'rate', '')::numeric) AS single_amount,
         (item->>'unit_price')::boolean AS unit_price,
@@ -99,5 +100,6 @@ exports.getSalesReport = async (fromDate, toDate) => {
 `;
 
   const result = await Pool.query(query, [fromDate, toDate]);
+  console.log("Sales report query result:", result.rows);
   return result.rows;
 };

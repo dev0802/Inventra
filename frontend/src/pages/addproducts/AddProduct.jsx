@@ -467,10 +467,11 @@ export default function AddProduct() {
               Gross Weight (Gms.)
             </label>
             <input
+            type="number"
               name="grossWeight"
               // value={initialProductData.grossWeight}
               onChange={handleNumericChange}
-              className="flex-1 px-4 py-2 rounded-full border border-gray-400 bg-white/50 outline-none focus:border-gray-400 focus:shadow-md"
+              className="flex-1 px-4 py-2 rounded-full border border-gray-400 bg-white/50 outline-none focus:border-gray-400 focus:shadow-md [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
             />
           </div>
 
@@ -480,10 +481,11 @@ export default function AddProduct() {
               Stone Weight (Gms.)
             </label>
             <input
+            type="number"
               name="stoneWeight"
               // value={initialProductData.stoneWeight}
               onChange={handleNumericChange}
-              className="flex-1 px-4 py-2 rounded-full border border-gray-400 bg-white/50 outline-none focus:border-gray-400 focus:shadow-md"
+              className="flex-1 px-4 py-2 rounded-full border border-gray-400 bg-white/50 outline-none focus:border-gray-400 focus:shadow-md [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
             />
           </div>
 
@@ -493,10 +495,11 @@ export default function AddProduct() {
               Moti Weight (Gms.)
             </label>
             <input
+              type="number"
               name="motiWeight"
               // value={initialProductData.motiWeight}
               onChange={handleNumericChange}
-              className="flex-1 px-4 py-2 rounded-full border border-gray-400 bg-white/50 outline-none focus:border-gray-400 focus:shadow-md"
+              className="flex-1 px-4 py-2 rounded-full border border-gray-400 bg-white/50 outline-none focus:border-gray-400 focus:shadow-md [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
             />
           </div>
 
@@ -506,10 +509,11 @@ export default function AddProduct() {
               Diamond Weight (Ct.)
             </label>
             <input
+              type="number"
               name="diamondWeight"
               // value={initialProductData.diamondWeight}
               onChange={handleNumericChange}
-              className="flex-1 px-4 py-2 rounded-full border border-gray-400 bg-white/50 outline-none focus:border-gray-400 focus:shadow-md"
+              className="flex-1 px-4 py-2 rounded-full border border-gray-400 bg-white/50 outline-none focus:border-gray-400 focus:shadow-md [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
             />
           </div>
 
@@ -519,10 +523,11 @@ export default function AddProduct() {
               Solitaire Weight (Ct.)
             </label>
             <input
+              type="number" 
               name="solitaireWeight"
               // value={initialProductData.solitaireWeight}
               onChange={handleNumericChange}
-              className="flex-1 px-4 py-2 rounded-full border border-gray-400 bg-white/50 outline-none focus:border-gray-400 focus:shadow-md"
+              className="flex-1 px-4 py-2 rounded-full border border-gray-400 bg-white/50 outline-none focus:border-gray-400 focus:shadow-md [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
             />
           </div>
 
@@ -532,10 +537,11 @@ export default function AddProduct() {
               Color Stone (Gms.)
             </label>
             <input
+              type="number"
               name="colorStone"
               // value={initialProductData.colorStone}
               onChange={handleNumericChange}
-              className="flex-1 px-4 py-2 rounded-full border border-gray-400 bg-white/50 outline-none focus:border-gray-400 focus:shadow-md"
+              className="flex-1 px-4 py-2 rounded-full border border-gray-400 bg-white/50 outline-none focus:border-gray-400 focus:shadow-md [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
             />
           </div>
 
@@ -545,10 +551,11 @@ export default function AddProduct() {
               Minna (Gms.)
             </label>
             <input
+              type="number"
               name="minnaWeight"
               // value={initialProductData.minnaWeight}
               onChange={handleNumericChange}
-              className="flex-1 px-4 py-2 rounded-full border border-gray-400 bg-white/50 outline-none focus:border-gray-400 focus:shadow-md"
+              className="flex-1 px-4 py-2 rounded-full border border-gray-400 bg-white/50 outline-none focus:border-gray-400 focus:shadow-md [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
             />
           </div>
 
@@ -558,10 +565,11 @@ export default function AddProduct() {
               Colouring (Gms.)
             </label>
             <input
+              type="number"
               name="colouring"
               // value={initialProductData.colouring}
               onChange={handleNumericChange}
-              className="flex-1 px-4 py-2 rounded-full border border-gray-400 bg-white/50 outline-none focus:border-gray-400 focus:shadow-md"
+              className="flex-1 px-4 py-2 rounded-full border border-gray-400 bg-white/50 outline-none focus:border-gray-400 focus:shadow-md [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
             />
           </div>
 
@@ -571,10 +579,11 @@ export default function AddProduct() {
               Net Weight (Gms.)
             </label>
             <input
+              type="number"
               name="netWeight"
               value={netWeight}
               onChange={handleNumericChange}
-              className="flex-1 px-4 py-2 rounded-full border border-gray-400 bg-white/50 outline-none focus:border-gray-400 focus:shadow-md"
+              className="flex-1 px-4 py-2 rounded-full border border-gray-400 bg-white/50 outline-none focus:border-gray-400 focus:shadow-md [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
             />
           </div>
 
@@ -584,10 +593,11 @@ export default function AddProduct() {
               Price (₹)
             </label>
             <input
+              type="number"
               name="price"
               // value={initialProductData.price || ""}
               onChange={handleNumericChange}
-              className="flex-1 px-4 py-2 rounded-full border border-gray-400 bg-white/50 outline-none focus:border-gray-400 focus:shadow-md"
+              className="flex-1 px-4 py-2 rounded-full border border-gray-400 bg-white/50 outline-none focus:border-gray-400 focus:shadow-md [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
             />
           </div>
 

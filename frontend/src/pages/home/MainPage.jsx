@@ -15,15 +15,20 @@ import {
   getInvoiceByNumberAndFY,
   updateInvoice,
   deleteInvoice,
+  getProductByItemCode,
 } from "../../services/api/printinvoice/printInvoiceApi";
 import DuplicateInvoiceCopyPdf from "../../shared/component/DuplicateInvoiceCopyPdf";
 import InvoicePdf from "../../shared/component/InvoicePdf";
-export default function MainPage({ setIsLoggedIn, manualInvoice, setManualInvoice }) {
+export default function MainPage({
+  setIsLoggedIn,
+  manualInvoice,
+  setManualInvoice,
+}) {
   const navigate = useNavigate();
   const todayDate = () => {
     const now = new Date();
-  const istOffset = 5.5 * 60 * 60 * 1000;
-  return new Date(now.getTime() + istOffset).toISOString().split("T")[0];
+    const istOffset = 5.5 * 60 * 60 * 1000;
+    return new Date(now.getTime() + istOffset).toISOString().split("T")[0];
   };
 
   const [showSettingDropdown, setShowSettingDropdown] = useState(false);
@@ -104,7 +109,14 @@ export default function MainPage({ setIsLoggedIn, manualInvoice, setManualInvoic
           };
           const isToday =
             latestGoldRate.rate_date?.split("T")[0] === todayDate();
-            console.log("date from backend", latestGoldRate.rate_date?.split("T")[0], "today's date", todayDate(), "isToday:", isToday);
+          console.log(
+            "date from backend",
+            latestGoldRate.rate_date?.split("T")[0],
+            "today's date",
+            todayDate(),
+            "isToday:",
+            isToday,
+          );
           if (isToday) {
             setGoldRateData({
               goldRate24K: latestGoldRate.gold_rate_24k,
@@ -120,7 +132,7 @@ export default function MainPage({ setIsLoggedIn, manualInvoice, setManualInvoic
               todayGold14K: latestGoldRate.gold_rate_14k,
             });
           }
-          
+
           setTodayGoldRate({
             todayGold24K: latestGoldRate.gold_rate_24k,
             todayGold22K: latestGoldRate.gold_rate_22k,
@@ -129,8 +141,7 @@ export default function MainPage({ setIsLoggedIn, manualInvoice, setManualInvoic
           });
 
           setGoldRateData({ ...rateObj, rateDate: todayDate() });
-        
-      }
+        }
       } catch (error) {
         console.error("Error fetching gold rate:", error);
       }
@@ -288,46 +299,46 @@ export default function MainPage({ setIsLoggedIn, manualInvoice, setManualInvoic
   const handleSearchKeyDown = (e) => {
     if (e.key === "Enter") handleSearchInvoice();
   };
-  // const handleUpdateItemCodeFetch = async (e, idx) => {
-  //   if (e.key === "Enter" && e.target.value) {
-  //     try {
-  //       const result = await getProductByItemCode(e.target.value);
-  //       if (result && result.length > 0) {
-  //         setFoundInvoice((prev) => {
-  //           const items = [...prev.items];
-  //           const currentItem = items[idx];
-  //           const newItems = result.map((item, i) => ({
-  //             ...(i === 0
-  //               ? currentItem
-  //               : {
-  //                   unit: "Gms.",
-  //                   rate: "",
-  //                   unit_price: false,
-  //                   making_charges: "",
-  //                 }),
-  //                 item_code: e.target.value,
-  //                 code: e.target_value,
-  //                 item_description: item.item_description,
-  //             hsn_code: item.hsn_code,
-  //             quantity: item.gross_weight,
-  //             unit_price: i === 0 ? true : false,
-  //           }));
-  //           items.splice(idx, 1, ...newItems);
-  //           return { ...prev, items };
-  //         });
-  //       } else {
-  //         showNotification(
-  //           "error",
-  //           "Error",
-  //           "This product is sold or deleted.",
-  //         );
-  //       }
-  //     } catch (error) {
-  //       console.error("Error:", error);
-  //     }
-  //   }
-  // };
-
+  const handleUpdateItemCodeFetch = async (e, idx) => {
+    if (e.key === "Enter" && e.target.value) {
+      try {
+        const result = await getProductByItemCode(e.target.value);
+        if (result && result.length > 0) {
+          setFoundInvoice((prev) => {
+            const items = [...prev.items];
+            const currentItem = items[idx];
+            const newItems = result.map((item, i) => ({
+              ...(i === 0
+                ? currentItem
+                : {
+                  unit: "Gms.",
+                  rate: "",
+                  unit_price: false,
+                  making_charges: "",
+                }),
+              item_code: e.target.value,
+              code: e.target_value,
+              item_description: item.item_description,
+              hsn_code: item.hsn_code,
+              quantity: item.gross_weight,
+              unit_price: i === 0 ? true : false,
+            }));
+            items.splice(idx, 1, ...newItems);
+            return { ...prev, items };
+          });
+        } else {
+          showNotification(
+            "error",
+            "Error",
+            "This product is sold or deleted.",
+          );
+        }
+      } catch (error) {
+        console.error("Error:", error);
+      }
+    }
+  };
+  const [latestInvoiceNumber, setLatestInvoiceNumber] = useState(null);
   const handleDeleteInvoice = async () => {
     try {
       await deleteInvoice(foundInvoice.invoice_id);
@@ -340,6 +351,20 @@ export default function MainPage({ setIsLoggedIn, manualInvoice, setManualInvoic
     }
   };
 
+  // const handleSearchInvoice = async () => {
+  //   if (!updateSearch.invoiceNumber)
+  //     return showNotification("error", "Error", "Invoice number required!");
+  //   try {
+  //     const res = await getInvoiceByNumberAndFY(
+  //       updateSearch.invoiceNumber,
+  //       updateSearch.financialYear,
+  //     );
+  //     setFoundInvoice(res);
+  //   } catch {
+  //     setFoundInvoice(null);
+  //     showNotification("error", "Not Found", "No invoice found.");
+  //   }
+  // };
   const handleSearchInvoice = async () => {
     if (!updateSearch.invoiceNumber)
       return showNotification("error", "Error", "Invoice number required!");
@@ -349,12 +374,14 @@ export default function MainPage({ setIsLoggedIn, manualInvoice, setManualInvoic
         updateSearch.financialYear,
       );
       setFoundInvoice(res);
+      setLatestInvoiceNumber(res.latest_invoice_number); // ← yahan
     } catch {
       setFoundInvoice(null);
       showNotification("error", "Not Found", "No invoice found.");
     }
   };
-
+  console.log("invoice_number:", foundInvoice?.invoice_number);
+console.log("latest_invoice_number:", latestInvoiceNumber);
   const handleItemChange = (idx, field, value) => {
     setFoundInvoice((prev) => {
       const items = [...prev.items];
@@ -743,9 +770,14 @@ export default function MainPage({ setIsLoggedIn, manualInvoice, setManualInvoic
                         {foundInvoice.items.map((item, idx) => (
                           <tr key={idx}>
                             <td className="p-1 border border-gray-300 text-center text-gray-500 text-xs">
-                              {item.is_main_item !== false ? idx + 1 : ""}
+                              {item.is_main_item !== false
+                                ? foundInvoice.items
+                                  .slice(0, idx + 1)
+                                  .filter((i) => i.is_main_item !== false)
+                                  .length
+                                : ""}
                             </td>
-                            {/* <td className="p-1 border border-gray-300">
+                            <td className="p-1 border border-gray-300">
                               <input
                                 value={item.item_code || item.code || ""}
                                 onChange={(e) =>
@@ -756,7 +788,7 @@ export default function MainPage({ setIsLoggedIn, manualInvoice, setManualInvoic
                                 }
                                 className="border rounded px-1.5 py-1 w-16 bg-white text-xs"
                               />
-                            </td> */}
+                            </td>
                             <td className="p-1 border border-gray-300">
                               <input
                                 value={item.item_description || ""}
@@ -879,7 +911,12 @@ export default function MainPage({ setIsLoggedIn, manualInvoice, setManualInvoic
                   <div className="flex justify-center gap-3 px-6 py-4">
                     <button
                       onClick={handleDeleteInvoice}
-                      className="text-white text-sm font-semibold px-5 py-2 rounded-full border border-white/40 bg-gradient-to-r from-gray-600 to-gray-700 hover:from-gray-700 hover:to-gray-800 transition-all"
+                      disabled={foundInvoice?.invoice_number !== latestInvoiceNumber}
+                      className={`text-white text-sm font-semibold px-5 py-2 rounded-full border border-white/40 transition-all
+    ${foundInvoice?.invoice_number !== latestInvoiceNumber
+                          ? "bg-gray-400 cursor-not-allowed opacity-50"
+                          : "bg-gradient-to-r from-gray-600 to-gray-700 hover:from-gray-700 hover:to-gray-800"
+                        }`}
                     >
                       Delete Invoice
                     </button>

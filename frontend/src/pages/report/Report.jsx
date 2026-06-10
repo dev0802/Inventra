@@ -8,7 +8,7 @@ import {
   getSalesReport,
 } from "../../services/api/report/reportApi";
 import { exportToExcel } from "../../shared/component/ExportExcel";
-import {salesReportToExcel} from "../../shared/component/SalesReportExcel";
+import { salesReportToExcel } from "../../shared/component/SalesReportExcel";
 
 export default function Report() {
   const [notification, setNotification] = useState({
@@ -29,7 +29,7 @@ export default function Report() {
     return new Date(dateStr).toLocaleDateString("en-IN", {
       day: "2-digit",
       month: "2-digit",
-      year: "numeric"
+      year: "numeric",
     });
   };
   const [showSalesReport, setShowSalesReport] = useState(false);
@@ -88,23 +88,25 @@ export default function Report() {
       clQtyAlt: 0,
     },
   );
-  
+
   const totalSales = salesData.reduce(
     (acc, item) => ({
-        itemsCount: item.is_main_item ? acc.itemsCount + 1 : acc.itemsCount,
-        quantity: acc.quantity + (parseFloat(item.quantity) || 0),
-        amount: acc.amount + (item.unit_price
-            ? (parseFloat(item.quantity) || 0) * (parseFloat(item.rate) || 0)
-            : (parseFloat(item.rate) || 0)),
+      itemsCount: item.is_main_item ? acc.itemsCount + 1 : acc.itemsCount,
+      quantity: acc.quantity + (parseFloat(item.quantity) || 0),
+      amount:
+        acc.amount +
+        (item.unit_price
+          ? (parseFloat(item.quantity) || 0) * (parseFloat(item.rate) || 0)
+          : parseFloat(item.rate) || 0),
     }),
     {
-        itemsCount: 0,
-        quantity: 0,
-        amount: 0,
+      itemsCount: 0,
+      quantity: 0,
+      amount: 0,
     },
-);
-  
-const handleExportToExcel = () => {
+  );
+
+  const handleExportToExcel = () => {
     if (!stockData.length) {
       showNotification("error", "Error", "No data to export!");
       return;
@@ -113,14 +115,19 @@ const handleExportToExcel = () => {
     // showNotification("success", "Success", "Excel downloaded successfully!");
   };
 
-  const handleSalesReportToExcel = async() => {
-    if(!salesData.length){
+  const handleSalesReportToExcel = async () => {
+    if (!salesData.length) {
       showNotification("error", "Error", "No data to export!");
       return;
     }
 
-    salesReportToExcel(salesData, totalSales, dateRange.fromDate, dateRange.toDate)
-  }
+    salesReportToExcel(
+      salesData,
+      totalSales,
+      dateRange.fromDate,
+      dateRange.toDate,
+    );
+  };
   const handleShowSalesReport = async () => {
     if (new Date(dateRange.fromDate) > new Date(dateRange.toDate)) {
       showNotification("error", "Error", "From Date cannot be after To Date!");
@@ -128,8 +135,19 @@ const handleExportToExcel = () => {
     }
     try {
       const res = await getSalesReport(dateRange.fromDate, dateRange.toDate);
+
       if (res.success) {
-        setSalesData(res.data);
+        // const seenInvoices = new Set();
+        const fixedData = res.data.map((item, index) => {
+          return {
+            ...item,
+            is_main_item:
+              index === 0 ||
+              res.data[index - 1].invoice_number !== item.invoice_number,
+          };
+        });
+        console.log("Fixed Sales Report Data:", fixedData);
+        setSalesData(fixedData);
         setShowSalesReport(true);
       } else {
         showNotification(
@@ -148,7 +166,6 @@ const handleExportToExcel = () => {
     }
   };
 
-  
   const handleGenerateReport = async () => {
     if (!dateRange.fromDate || !dateRange.toDate) {
       showNotification(
@@ -187,19 +204,18 @@ const handleExportToExcel = () => {
         "An error occurred while fetching report data.",
       );
     }
-
   };
-  const handleSalesReportPdf = async() => {
+  const handleSalesReportPdf = async () => {
     if (!salesData.length) {
       showNotification("error", "Error", "No data to export!");
     }
-    try{
+    try {
       const blob = await pdf(
         <SalesReportPdf
-        fromDate={formatDate(dateRange.fromDate)}
-        toDate={formatDate(dateRange.toDate)}
-        salesData={salesData}
-        />
+          fromDate={formatDate(dateRange.fromDate)}
+          toDate={formatDate(dateRange.toDate)}
+          salesData={salesData}
+        />,
       ).toBlob();
       const url = URL.createObjectURL(blob);
       const link = document.createElement("a");
@@ -211,7 +227,7 @@ const handleExportToExcel = () => {
       console.error(err);
       showNotification("error", "Error", "Failed to generate PDF.");
     }
-  }
+  };
   const handleDownloadPdf = async () => {
     if (!stockData.length) {
       showNotification("error", "Error", "No data to export!");
@@ -308,7 +324,7 @@ const handleExportToExcel = () => {
             <h2 className="text-xl font-bold text-gray-800 text-center">
               {showSalesReport ? "Sales Report" : "Consolidated Report"}
             </h2>
-            </div>
+          </div>
           {/* Stock Report Table */}
           {!showSalesReport && (
             <div className="overflow-x-auto overflow-y-auto max-h-[60vh]">
@@ -472,7 +488,10 @@ const handleExportToExcel = () => {
                 </thead>
                 <tbody>
                   {salesData.map((item, index) => (
-                    <tr key={item.invoiceNumber} className="bg-white hover:bg-gray-50">
+                    <tr
+                      key={item.invoiceNumber}
+                      className="bg-white hover:bg-gray-50"
+                    >
                       <td className="p-3 border border-gray-400 text-center">
                         {item.is_main_item && formatDate(item.date)}
                       </td>
@@ -486,7 +505,7 @@ const handleExportToExcel = () => {
                         {parseFloat(item.quantity).toFixed(3)}
                       </td>
                       <td className="p-3 border border-gray-400 text-center">
-                        {item.item_description === 'STONES' || item.item_description === 'MOTI' || item.item_description === 'MINNA' || item.item_description === 'COLOR STONE' || item.item_description === 'COLOURING' || item.is_main_item ? 'Gms.' : item.item_description === 'DIAMOND' || item.item_description === 'SOLITAIRE' ? 'Ct.' : ''}
+                        {item.unit}
                       </td>
                       <td className="p-3 border border-gray-400 text-center">
                         {parseFloat(item.rate).toFixed(2)}
@@ -519,13 +538,19 @@ const handleExportToExcel = () => {
 
         <div className="flex gap-4 justify-center mt-6">
           <button
-            onClick={() => {showSalesReport ? handleSalesReportPdf() : handleDownloadPdf()}}
+            onClick={() => {
+              showSalesReport ? handleSalesReportPdf() : handleDownloadPdf();
+            }}
             className="text-white text-sm hover:shadow-xl shadow-gray-700 font-semibold px-4 py-2 rounded-full border border-white/40 bg-gradient-to-r from-gray-600 to-gray-700 hover:from-gray-700 hover:to-gray-800 transition-all duration-200"
           >
             Download PDF
           </button>
           <button
-            onClick={() => {showSalesReport ? handleSalesReportToExcel() : handleExportToExcel()}}
+            onClick={() => {
+              showSalesReport
+                ? handleSalesReportToExcel()
+                : handleExportToExcel();
+            }}
             className="text-white text-sm hover:shadow-xl shadow-gray-700 font-semibold px-4 py-2 rounded-full border border-white/40 bg-gradient-to-r from-gray-600 to-gray-700 hover:from-gray-700 hover:to-gray-800 transition-all duration-200"
           >
             Export to Excel

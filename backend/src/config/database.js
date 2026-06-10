@@ -9,6 +9,20 @@ const pool = new Pool({
   port: process.env.DB_PORT,
 });
 
+const withTransaction = async (callback) => {
+  const client = await pool.connect();
+  try {
+    await client.query("BEGIN");
+    const result = await callback(client);
+    await client.query("COMMIT");
+    return result;
+  } catch (error) {
+    await client.query("ROLLBACK");
+    throw error;
+  } finally {
+    client.release();
+  }
+};
 const adminTable = async (client) => {
   await client.query(`
     CREATE TABLE IF NOT EXISTS admin (
@@ -159,4 +173,5 @@ const createAllTables = async () => {
 module.exports = {
   Pool: pool,
   createAllTables,
+  withTransaction,
 };

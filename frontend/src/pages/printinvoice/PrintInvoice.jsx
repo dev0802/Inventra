@@ -14,7 +14,7 @@ import { pdf } from "@react-pdf/renderer";
 import InvoicePdf from "../../shared/component/InvoicePdf";
 import ManualInvoice from "../../shared/component/ManualInvoice";
 import GeneralInvoice from "../../shared/component/GeneralInvoice";
-// import { useGoldRate } from "../../context/GoldRateContext";
+
 import NotificationModal from "../../shared/utilis/notificationModal";
 
 const karatOptions = [
@@ -75,7 +75,7 @@ export default function PrintInvoice({ manualInvoice, setManualInvoice }) {
       itemDescription: "",
       hsnCode: "",
       quantity: "",
-      unit: "Gms.",
+      unit: "Gms."||"Ct.",
       rate: showGoldRate?.showGold24K || "",
       unitPrice: true,
       makingCharges: "10",
@@ -148,7 +148,7 @@ export default function PrintInvoice({ manualInvoice, setManualInvoice }) {
         itemDescription: "",
         hsnCode: "",
         quantity: "",
-        unit: "Gms.",
+        unit: "Gms." || "Ct.",
         rate: "",
         unitPrice: true,
         makingCharges: "10",
@@ -156,11 +156,7 @@ export default function PrintInvoice({ manualInvoice, setManualInvoice }) {
     ]);
   };
 
-  const handleDeleteRow = (id) => {
-    if (rows.length > 1) {
-      setRows((prev) => prev.filter((row) => row.id !== id));
-    }
-  };
+  
 
   const handleRowChange = (id, field, value) => {
     setRows((prev) =>
@@ -211,7 +207,7 @@ export default function PrintInvoice({ manualInvoice, setManualInvoice }) {
         itemDescription: "",
         hsnCode: "",
         quantity: "",
-        unit: "Gms.",
+        unit: "Gms." || "Ct.",
         rate: showGoldRate?.showGold24K || "",
         unitPrice: true,
         makingCharges: "10",
@@ -406,8 +402,11 @@ export default function PrintInvoice({ manualInvoice, setManualInvoice }) {
     if (e.key === "Enter" && e.target.value) {
       try {
         const result = await getProductByItemCode(e.target.value);
+        console.log("Itemss: ", result)
         if (result && result.length > 0) {
           const currentRow = rows.find((row) => row.id === rowId);
+          const groupId = crypto.randomUUID();
+          console.log("group code", groupId)
           const newRows = result.map((item, i) => {
             const desc = (item.item_description || "").toLowerCase();
             const isDiamondOrSolitaire =
@@ -415,28 +414,29 @@ export default function PrintInvoice({ manualInvoice, setManualInvoice }) {
             const goldRateByDescription = handleGoldRateByDecription(
               item.item_description,
             );
-            return {
-              ...(i === 0
-                ? currentRow
-                : {
-                    id: generateId(),
-                    unit: "Gms.",
-                    rate: "",
-                    unitPrice: false,
-                    makingCharges: "",
-                  }),
-              itemDescription: item.item_description,
-              hsnCode: item.hsn_code,
-              quantity: item.net_weight,
-              unitPrice: i === 0 ? true : false,
-              unit: isDiamondOrSolitaire
-                ? "Ct."
-                : i === 0
-                  ? currentRow.unit
-                  : "Gms.",
-              rate: i === 0 ? goldRateByDescription : "",
-            };
-          });
+            const baseRow = i === 0
+            ? { ...currentRow }
+            : {
+                id: generateId(),
+                unit: "Gms.",
+                rate: "",
+                unitPrice: false,
+                makingCharges: "",
+              };
+
+          return {
+            ...baseRow,
+            groupId,           // ← spread ke BAAD explicitly set karo
+            itemDescription: item.item_description,
+            hsnCode: item.hsn_code,
+            quantity: item.net_weight,
+            unitPrice: i === 0 ? true : false,
+            unit: isDiamondOrSolitaire ? "Ct." : i === 0 ? currentRow.unit : "Gms.",
+            rate: i === 0 ? goldRateByDescription : "",
+          };
+        });
+
+          console.log("New Rows:", newRows);
           setRows((prev) => {
             const otherRows = prev.filter((row) => row.id !== rowId);
             return [...otherRows, ...newRows];
@@ -453,7 +453,35 @@ export default function PrintInvoice({ manualInvoice, setManualInvoice }) {
       }
     }
   };
+  const handleDeleteRow = (id) => {
+  setRows((prev) => {
+    const deletedRow = prev.find((row) => row.id === id);
+    if (!deletedRow) return prev;
 
+    let newRows;
+    if (deletedRow.groupId) {
+      newRows = prev.filter((row) => row.groupId !== deletedRow.groupId);
+    } else {
+      newRows = prev.filter((row) => row.id !== id);
+    }
+
+    if (newRows.length === 0) {
+      return [{
+        id: 1,
+        itemCode: "",
+        itemDescription: "",
+        hsnCode: "",
+        quantity: "",
+        unit: "Gms.",
+        rate: "",
+        unitPrice: true,
+        makingCharges: "10",
+      }];
+    }
+
+    return newRows;
+  });
+};
   const handlePrintInvoice = async () => {
     if (!customerData.customerName.trim())
       return showNotification("error", "Error", "Customer Name is required!");
@@ -504,6 +532,7 @@ export default function PrintInvoice({ manualInvoice, setManualInvoice }) {
       }
 
       const itemResult = await saveItemDetail(rows);
+      console.log("Item Rows:", rows);
       const group_code = itemResult.allGroupCode;
 
       const customerResult = await getCustomerByPhone(
@@ -522,7 +551,7 @@ export default function PrintInvoice({ manualInvoice, setManualInvoice }) {
         group_code,
         invoice_date: today,
       });
-
+      console.log("Saved", saved);
       const blob = await pdf(
         <InvoicePdf
           customerData={saved.customer}
@@ -542,8 +571,8 @@ export default function PrintInvoice({ manualInvoice, setManualInvoice }) {
       document.body.appendChild(link);
       link.click();
       document.body.removeChild(link);
-
       handleReset();
+
     } catch (err) {
       console.error("Invoice error:", err);
       showNotification("error", "Error", "Failed to generate invoice");
@@ -695,7 +724,7 @@ export default function PrintInvoice({ manualInvoice, setManualInvoice }) {
       />
       <div className="bg-gray-200 shadow-lg shadow-gray-600 backdrop-blur-md border border-gray-400 rounded-2xl p-6 w-full mx-auto">
         {/* Toggle Switch */}
-        <div className="flex flex-col items-center mb-6">
+        <div className="flex items-center justify-center mb-6 relative">
           <div className="relative w-2/4 h-10 bg-gray-100 rounded-full cursor-pointer flex items-center">
             <div
               className={`absolute w-2/4 h-full bg-gray-500 rounded-full transition-all duration-150
@@ -717,18 +746,26 @@ export default function PrintInvoice({ manualInvoice, setManualInvoice }) {
             </span>
           </div>
           {activeTab === "Item Details" && (
-            <div className="flex items-center gap-4 mt-3">
-              <select
-                className="border border-gray-400 focus:outline-none rounded bg-gray-200 text-gray-800 text-md"
-                value={goldInvoice ? "goldInvoice" : "silverInvoice"}
-                onChange={(e) =>
-                  setGoldInvoice(e.target.value === "goldInvoice")
-                }
-              >
-                <option value="goldInvoice">Gold Invoice</option>
-                <option value="silverInvoice">Silver Invoice</option>
-              </select>
-            </div>
+            <div className="absolute right-0">
+              <div className="relative w-40 h-10 bg-gray-100 rounded-full cursor-pointer flex items-center">
+                <div className={`absolute w-2/4 h-full bg-gray-500 rounded-full transition-all duration-150
+                  ${goldInvoice ? "left-0" : "left-1/2"}`}/>
+            <span
+        onClick={() => setGoldInvoice(true)}
+        className={`z-10 w-2/4 text-center text-sm font-medium cursor-pointer transition-colors
+          ${goldInvoice ? "text-white" : "text-gray-500"}`}
+      >
+        Gold
+      </span>
+      <span
+        onClick={() => setGoldInvoice(false)}
+        className={`z-10 w-2/4 text-center text-sm font-medium cursor-pointer transition-colors
+          ${!goldInvoice ? "text-white" : "text-gray-500"}`}
+      >
+        Silver
+      </span>
+    </div>
+  </div>
           )}
         </div>
 
@@ -749,6 +786,7 @@ export default function PrintInvoice({ manualInvoice, setManualInvoice }) {
                 GST
               </label>
             </div>
+            
             <div className="flex items-center gap-3">
               <input
                 type="date"

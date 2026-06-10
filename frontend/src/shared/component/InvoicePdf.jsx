@@ -177,7 +177,7 @@ export default function InvoicePdf({
   invoiceDate,
   cgstRate = 1.5,
   sgstRate = 1.5,
-  goldInvoice
+  goldInvoice,
 }) {
   const PhoneIcon = () => (
     <Svg width="8" height="8" viewBox="0 0 24 24">
@@ -256,7 +256,7 @@ export default function InvoicePdf({
     itemDescription: row.item_description || row.itemDescription || "",
     hsnCode: row.hsn_code || row.hsnCode || "",
     quantity: row.quantity || "",
-    unit: row.unit || "Gms.",
+    unit: row.unit || "Gms." || "Ct.",
     rate: row.rate || "",
     makingCharges: row.making_charges || row.makingCharges || "",
     is_main_item: row.is_main_item,
@@ -269,9 +269,38 @@ export default function InvoicePdf({
     const rate = parseFloat(row.rate) || 0;
     const baseAmt = qty * rate;
     const makingPct = parseFloat(row.makingCharges) || 0;
-    const makingAmt =
-      row.unit === "Gms." && row.unitPrice === true && makingPct !== 0 ? Math.round((baseAmt * makingPct) / 100) : null;
-    const lineTotal = row.unit === "Ct." || row.unitPrice !== true ? rate : baseAmt + makingAmt;
+
+    const isGold = row.unit === "Gms.";
+    const isDiamond = row.unit === "Ct.";
+    const isGoldRate = row.unitPrice === true;
+
+    let makingAmt = null;
+    let lineTotal = 0;
+
+    if (isGold && isGoldRate) {
+      // Gold item: qty * rate + making%
+      makingAmt =
+        makingPct !== 0 ? Math.round((baseAmt * makingPct) / 100) : null;
+      lineTotal = baseAmt + (makingAmt || 0);
+    } else if (isDiamond && isGoldRate) {
+      // Diamond WITH making charges (unit_price=true)
+      makingAmt =
+        makingPct !== 0 ? Math.round((baseAmt * makingPct) / 100) : null;
+      lineTotal = baseAmt + (makingAmt || 0);
+    } else if (isDiamond && !isGoldRate) {
+      // Solitaire / fixed price diamond (unit_price=false)
+      lineTotal = rate;
+      makingAmt = null;
+    } else if (isGold && !isGoldRate) {
+      // Gold item with fixed price (not rate-based)
+      lineTotal = rate;
+      makingAmt = null;
+    } else {
+      // Fallback
+      lineTotal = rate;
+      makingAmt = null;
+    }
+
     return { ...row, baseAmt, makingAmt, lineTotal };
   });
 
@@ -299,7 +328,7 @@ export default function InvoicePdf({
         <View style={{ flexDirection: "row", marginBottom: 5 }}>
           {/* Left - Logo only, white bg */}
           <View style={S.headerLeft}>
-            <Image src={logo} style={{ width: 40  , height: 40 }} />
+            <Image src={logo} style={{ width: 40, height: 40 }} />
           </View>
 
           {/* Right - Golden bg, red text, golden borders top/bottom */}
@@ -336,13 +365,13 @@ export default function InvoicePdf({
             <Text style={S.billLabel}>Billed To</Text>
 
             {name ? <Text style={S.billValue}>{name}</Text> : null}
-            
+
             {address ? <Text style={S.billValue}>{address}</Text> : null}
-            
+
             {phone ? <Text style={S.billValue}>{phone}</Text> : null}
-            
+
             {email ? <Text style={S.billValue}>{email}</Text> : null}
-            
+
             {custGstin ? (
               <Text style={S.billValue}>GSTIN: {custGstin}</Text>
             ) : null}
@@ -355,7 +384,7 @@ export default function InvoicePdf({
             </View>
             <View style={S.metaLine}>
               <Text style={S.metaKey}>Invoice Date:</Text>
-              
+
               <Text style={S.metaVal}>{formatDate(invoiceDate)}</Text>
             </View>
             <View style={S.metaLine}>
@@ -380,11 +409,12 @@ export default function InvoicePdf({
           </View>
 
           {computed.map((row, idx) => {
-            const isMain = !isNaN(Number(row.code)) && 
-               row.code !== "" && 
-               row.code !== null &&
-               row.code !== undefined;
-            
+            const isMain =
+              !isNaN(Number(row.code)) &&
+              row.code !== "" &&
+              row.code !== null &&
+              row.code !== undefined;
+
             if (isMain) snoCounter++;
             return (
               <View
@@ -399,10 +429,14 @@ export default function InvoicePdf({
                 </Text>
                 <Text style={[S.td, S.cRate, S.bl]}>{row.rate}</Text>
                 <Text style={[S.td, S.cMakePct, S.bl]}>
-                  {row.unit === "Ct." ? "" : row.makingCharges || ""}
+                  {!row.unitPrice && row.unit === "Ct."
+                    ? ""
+                    : row.makingCharges || ""}
                 </Text>
                 <Text style={[S.td, S.cMakeAmt, S.bl]}>
-                  {row.unit === "Ct." ? "" : row.makingAmt || ""}
+                  {!row.unitPrice && row.unit === "Ct."
+                    ? ""
+                    : row.makingAmt || ""}
                 </Text>
                 <Text style={[S.td, S.cAmt, S.bl]}>
                   {Math.round(row.lineTotal)}
