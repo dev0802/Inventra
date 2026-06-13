@@ -269,9 +269,37 @@ export default function ManualInvoice({
     const rate = parseFloat(row.rate) || 0;
     const baseAmt = qty * rate;
     const makingPct = parseFloat(row.makingCharges) || 0;
-    const makingAmt =
-      row.unit === "Gms." && row.unitPrice === true && makingPct !== 0 ? Math.round((baseAmt * makingPct) / 100) : null;
-    const lineTotal = row.unit === "Ct." || row.unitPrice !== true ? rate : baseAmt + makingAmt;
+
+    const isGold = row.unit === "Gms.";
+    const isDiamond = row.unit === "Ct.";
+    const isGoldRate = row.unitPrice === true;
+
+    let makingAmt = null;
+    let lineTotal = 0;
+
+    if (isGold && isGoldRate) {
+      
+      makingAmt =
+        makingPct !== 0 ? Math.round((baseAmt * makingPct) / 100) : null;
+      lineTotal = baseAmt + (makingAmt || 0);
+    } else if (isDiamond && isGoldRate) {
+      
+      makingAmt =
+        makingPct !== 0 ? Math.round((baseAmt * makingPct) / 100) : null;
+      lineTotal = baseAmt + (makingAmt || 0);
+    } else if (isDiamond && !isGoldRate) {
+      
+      lineTotal = rate;
+      makingAmt = null;
+    } else if (isGold && !isGoldRate) {
+      
+      lineTotal = rate;
+      makingAmt = null;
+    } else {
+      lineTotal = rate;
+      makingAmt = null;
+    }
+
     return { ...row, baseAmt, makingAmt, lineTotal };
   });
 
