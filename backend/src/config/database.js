@@ -78,9 +78,10 @@ const createItemDetailTable = async (client) => {
       hsn_code         VARCHAR(20),
       quantity         NUMERIC(10,3),
       rate             NUMERIC(10,2),
-      unit_price       BOOLEAN      DEFAULT true,
+      unit             TEXT DEFAULT 'Gms.',
+      unit_price       BOOLEAN DEFAULT true,
       making_charges   NUMERIC(5,2),
-      version          INTEGER      NOT NULL DEFAULT 0  -- OCC version column
+      version          INTEGER NOT NULL DEFAULT 0  -- OCC version column
     )
   `);
   console.log("itemdetail table ready");
