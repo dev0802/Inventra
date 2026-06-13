@@ -2,71 +2,81 @@ import React, { useState } from 'react'
 import { AiFillEye, AiFillEyeInvisible } from "react-icons/ai";
 import { resetPassword } from '../../services/api/auth/authApi';
 import { useShowPasswordToggle } from '../../shared/hooks/useShowPassword';
+import { useButtonDisable } from '../../shared/hooks/useButtonDisable';
 import { validatePhoneNumber, validatePassword } from '../../shared/utilis/Validators';
+const resetPasswordInfo = {
+    phone: "",
+    newPassword: "",
+    confirmPassword: ""
+};
 export default function ForgotPassword({ setMode }) {
-    const [phone, setPhone] = useState("");
-    const [newPassword, setNewPassword] = useState("");
-    const [confirmPassword, setConfirmPassword] = useState("");
+    // State variables for form inputs, validation errors, and reset status
     const [newPasswordError, setNewPasswordError] = useState("");
     const [confirmPasswordError, setConfirmPasswordError] = useState("");
     const [showPassword, togglePassword] = useShowPasswordToggle();
     const [phoneError, setPhoneError] = useState("");
-
+    const [isButtonDisabled, buttonDisableHandler] = useButtonDisable(resetPasswordInfo.phone, resetPasswordInfo.newPassword);
+    // Handler for validating phone number input
     const handlePhoneValidation = (e) => {
         let phoneValue = e.target.value;
 
         // Remove non-digit characters
         phoneValue = phoneValue.replace(/\D/g, "");
 
-        setPhone(phoneValue);
+        resetPasswordInfo.phone = phoneValue;
         setPhoneError(validatePhoneNumber(phoneValue));
+        
 
     };
-
+    // Handler for validating new password input
     const handlePasswordValidation = (e) => {
         let passwordValue = e.target.value;
 
-        setNewPassword(passwordValue);
+        resetPasswordInfo.newPassword = passwordValue;
         setNewPasswordError(validatePassword(passwordValue));
-
+        buttonDisableHandler(passwordValue);
     };
 
+    // Handler for validating confirm password input
     const confirmPasswordValidation = (e) => {
         let value = e.target.value;
 
-        if (value !== newPassword) {
+        if (value !== resetPasswordInfo.newPassword) {
             setConfirmPasswordError("Passwords do not match");
         } else {
             setConfirmPasswordError("Passwords match");
         }
-        setConfirmPassword(value);
+        resetPasswordInfo.confirmPassword = value;
+        buttonDisableHandler(value);
     };
-
+    
+    // Handler for form submission to reset the user's password
     const handleSubmit = async (e) => {
         e.preventDefault();
-        if(phone.length === 0)
+        if(resetPasswordInfo.phone.length === 0)
         {
             setPhoneError("Phone Number is required")
             return;
         }
-        if(newPassword.length === 0)
+        if(resetPasswordInfo.newPassword.length === 0)
         {
             setNewPasswordError("New password is required");
             return;
         }
-        if(confirmPassword.length === 0)
+        if(resetPasswordInfo.confirmPassword.length === 0)
         {
             setConfirmPasswordError("Confirm password is required");
             return
         }
-        const reset = await resetPassword(phone, newPassword);
+        // Call the resetPassword API function with the phone number and new password
+        const reset = await resetPassword(resetPasswordInfo.phone, resetPasswordInfo.newPassword);
 
         if (reset.message === "User not found") {
             setPhoneError("User not found");
         }
         else if (reset.message === "Password reset successfull") {
+            
             setMode("Sign In");
-            alert("Password reset successfull");
         }
     };
 
@@ -85,12 +95,12 @@ export default function ForgotPassword({ setMode }) {
                     id="phone"
                     pattern="[0-9]{10}"
                     placeholder=" "
-                    value={phone}
+                    // value={resetPasswordInfo.phone}
                     onChange={handlePhoneValidation}
                     className={`peer w-full focus:shadow-md border border-gray-500 rounded-md px-3 py-2 bg-transparent focus:border-gray-500 focus:outline-none " +
                     ${phoneError === "User not found" || phoneError === "Phone number must be 10 digits long"
                             ? "border-gray-500 shadow-sm shadow-red-500"
-                            : phone.length === 10 || phoneError !== "User not found"
+                            : resetPasswordInfo.phone.length === 10
                             ? "border-gray-500 shadow-sm shadow-green-500"
                             : ""
                         }
@@ -122,12 +132,12 @@ export default function ForgotPassword({ setMode }) {
                     type={showPassword ? "text" : "password"}
                     id="newPassword"
                     placeholder=" "
-                    value={newPassword}
+                    // value={resetPasswordInfo.newPassword}
                     onChange={handlePasswordValidation}
                     className={`peer w-full focus:shadow-md border border-gray-500 rounded-md px-3 py-2 bg-transparent focus:border-gray-500 focus:outline-none
                         ${newPasswordError === "Password must be 6 characters long" || newPasswordError === "New password is required"
                             ? "border-gray-500 shadow-sm shadow-red-500"
-                            :newPassword.length >= 6 
+                            :resetPasswordInfo.newPassword.length >= 6 
                             ?"border-gray-500 shadow-sm shadow-green-500"
                             :""
 
@@ -164,7 +174,7 @@ export default function ForgotPassword({ setMode }) {
                     type={showPassword ? "text" : "password"}
                     id="confirmPassword"
                     placeholder=" "
-                    value={confirmPassword}
+                    // value={confirmPassword}
                     onChange={confirmPasswordValidation}
                     className={`peer w-full focus:shadow-md border border-gray-500 rounded-md px-3 py-2 bg-transparent focus:border-gray-500 focus:outline-none
                         ${confirmPasswordError === "Passwords match"
@@ -200,8 +210,9 @@ export default function ForgotPassword({ setMode }) {
             </div>
 
             <button
-                className="relative w-full py-2 hover:bg-slate-500 font-semibold rounded-lg text-white tracking-widest text-lg overflow-hidden bg-gray-700 shadow-md group"
+                className="relative w-full py-2 hover:bg-slate-500 font-semibold rounded-lg disabled:bg-gray-500 disabled:cursor-not-allowed text-white tracking-widest text-lg overflow-hidden bg-gray-700 shadow-md group"
                 type="submit"
+                disabled={isButtonDisabled}
             >
                 Reset Password
 

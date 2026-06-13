@@ -1,17 +1,40 @@
 const express = require('express');
 const cors = require('cors');
 const app = express();
+const cookies = require('cookie-parser');
+
 const authRoute = require('./routes/authRoute');
-const adminPool = require('./config/database');
+const addProductRoute = require('./routes/addProductRoute');
+const viewProductRoute = require('./routes/viewProductRoute');
+const printInvoiceRoute = require('./routes/printInvoiceRoute');
+const reportRoute = require('./routes/reportRoute');
+const goldRateRoute = require('./routes/goldRateRoute');
+const { createAllTables } = require('./config/database');
+
+require('dotenv').config();
+app.use(cors({
+    origin: 'http://localhost:3000',
+    credentials: true,
+    methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+    allowedHeaders: ['Content-Type', 'Authorization'],
+}));
 
 app.use(express.json());
-app.use(cors());
+app.use(cookies());
 
 app.use('/api/auth/', authRoute);
-app.get("/", async(req,res)=>{
-  const data = await adminPool.query("SELECT * FROM admin");
-  res.json(data.rows);
-})
-app.listen(process.env.PORT || 5000, () => {
-  console.log('Server is running on port 5000');
-});
+app.use('/api/product/', addProductRoute);
+app.use('/api/view-product/', viewProductRoute);
+app.use('/api/print-invoice/', require('./routes/printInvoiceRoute'));
+app.use('/api/report/', require('./routes/reportRoute'));
+app.use('/api/gold-rate/', require('./routes/goldRateRoute'));
+
+const startServer = async () => {
+    await createAllTables();
+
+    app.listen(process.env.PORT, () => {
+        console.log(`Server is running on port ${process.env.PORT}`);
+    });
+};
+
+startServer();

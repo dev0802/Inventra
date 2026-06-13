@@ -1,76 +1,88 @@
-import React, { useState } from 'react'
+import React, { useRef, useState } from 'react'
 import { AiFillEye, AiFillEyeInvisible } from "react-icons/ai";
 import { useNavigate } from 'react-router-dom';
 import { signUp } from '../../services/api/auth/authApi';
-import {useShowPasswordToggle } from '../../shared/hooks/useShowPassword';
+import { useShowPasswordToggle } from '../../shared/hooks/useShowPassword';
+import { useButtonDisable } from '../../shared/hooks/useButtonDisable';
 import { validateName, validatePassword, validatePhoneNumber } from '../../shared/utilis/Validators';
 export default function SignUp({ setMode, setIsLoggedIn }) {
-    const [name, setName] = useState("");
-    const [phone, setPhone] = useState("");
-    const [password, setPassword] = useState("");
+    // State variables for form inputs, validation errors, and signup status
+    // const [name, setName] = useState("");
+    // const [phone, setPhone] = useState("");
+    // const [password, setPassword] = useState("");
+
+    const signUpInfo = useRef({
+        name: "",
+        phone:"",
+        password:""
+    })
     const [phoneerror, setPhoneError] = useState("");
     const [passworderror, setPasswordError] = useState("");
     const [nameerror, setNameError] = useState("");
     const [phoneStatus, setPhoneStatus] = useState("");
     const [showPassword, togglePassword] = useShowPasswordToggle();
+    const [isButtonDisabled, buttonDisableHandler] = useButtonDisable(signUpInfo.current.phone, signUpInfo.current.password);
     const [signupError, setSignupError] = useState("");
     const navigate = useNavigate();
-
-    const handleNameValidation = (e) =>
-    {
+    // Handlers for validating name, phone number, and password inputs
+    const handleNameValidation = (e) => {
         let nameValue = e.target.value;
 
-        setName(nameValue);
+        signUpInfo.current.name = nameValue;
         setNameError(validateName(nameValue));
     }
-    
+    // Handler for validating phone number input
     const handlePhoneValidation = (e) => {
         let phoneValue = e.target.value;
 
         // Remove non-digit characters
         phoneValue = phoneValue.replace(/\D/g, "");
-
-        setPhone(phoneValue);
+        signUpInfo.current.phone = phoneValue;
         setPhoneError(validatePhoneNumber(phoneValue));
-
+        setPhoneStatus("");
     };
 
+    // Handler for validating password input
     const handlePasswordValidation = (e) => {
-        let passwordValue = e.target.value;
-
-        setPassword(passwordValue);
+        const passwordValue = e.target.value;
+        signUpInfo.current.password = passwordValue;
         setPasswordError(validatePassword(passwordValue));
-        
+        buttonDisableHandler(passwordValue);
     };
 
+    // Handler for form submission to sign up the user
     const handleSubmit = async (e) => {
+        // Prevent the default form submission behavior so that page doesn't reload
         e.preventDefault();
 
-        if (phone.length === 0) {
+        if (signUpInfo.current.phone.length === 0) {
             setPhoneError("Phone number is required");
             return;
         }
 
-        if (name.length === 0) {
+        if (signUpInfo.current.name.length === 0) {
             setNameError("Name is required");
             return;
         }
 
-        if (password.length === 0) {
+        if (signUpInfo.current.password.length === 0) {
             setPasswordError("Password is required");
             return;
         }
 
-        const signUpResponse = await signUp(name, phone, password);
+        // Call the signUp API function with the name, phone number, and password
+
+        const signUpResponse = await signUp(signUpInfo.current.name, signUpInfo.current.phone, signUpInfo.current.password);
         if (signUpResponse.message === "Signup successfull") {
+            localStorage.setItem("userNameSignup", signUpResponse.user.name);
             setIsLoggedIn(true);
             navigate("/main");
-            alert("Signup successfull");
         }
-        else if(signUpResponse.message === "Phone Number already exists") {
-            setPhoneStatus("Phone Number already exists");
+        else if (signUpResponse.message === "Phone Number already exists") {
+            setPhoneStatus("Phone number already exists");
+            console.log(phoneStatus);
         }
-        else{
+        else {
             setSignupError("All fields are required");
         }
     };
@@ -89,7 +101,7 @@ export default function SignUp({ setMode, setIsLoggedIn }) {
                     type="text"
                     id="name"
                     placeholder=" "
-                    value={name}
+                    // ref={signUpInfo.current.name}
                     onChange={handleNameValidation}
                     className="peer w-full focus:shadow-md border border-gray-500 rounded-md px-3 py-2 bg-transparent focus:border-gray-500 focus:outline-none"
                 />
@@ -110,7 +122,7 @@ export default function SignUp({ setMode, setIsLoggedIn }) {
                     Name
                 </label>
                 {nameerror && (
-                    <p className="text-grey-500 text-sm mt-1">{nameerror}</p>
+                    <p className="text-gray-500 text-sm mt-1">{nameerror}</p>
                 )}
             </div>
             {/*Phone Number Input */}
@@ -120,12 +132,14 @@ export default function SignUp({ setMode, setIsLoggedIn }) {
                     id="phone"
                     pattern="[0-9]{10}"
                     placeholder=" "
-                    value={phone}
+                    // value={phone}
+                    // ref={signUpInfo.current.phone}
                     onChange={handlePhoneValidation}
                     className={`peer w-full focus:shadow-md border border-gray-500 rounded-md px-3 py-2 bg-transparent focus:border-gray-500 focus:outline-none "
-                             ${phoneerror === "Phone number must be 10 digits long" || phoneStatus === "Phone Number already exists"
+                             
+                        ${phoneerror === "Phone number must be 10 digits long" || phoneStatus === "Phone number already exists"
                             ? "border-gray-500 shadow-sm shadow-red-500"
-                            : phone.length===10
+                            : signUpInfo.current.phone.length === 10
                                 ? "border-gray-500 shadow-sm shadow-green-500"
                                 : ""
                         }
@@ -159,14 +173,15 @@ export default function SignUp({ setMode, setIsLoggedIn }) {
                     type={showPassword ? "text" : "password"}
                     id="password"
                     placeholder=" "
-                    value={password}
+                    // value={password}
+                    // ref={signUpInfo.current.password}
                     onChange={handlePasswordValidation}
                     className={`peer w-full focus:shadow-md border border-gray-500 rounded-md px-3 py-2 bg-transparent focus:border-gray-500 focus:outline-none "
                         ${passworderror === "Password must be 6 characters long"
                             ? "border-gray-500 shadow-sm shadow-red-500"
-                            :password.length>=6
-                            ? "border-gray-500 shadow-sm shadow-green-500"
-                            :""
+                            : signUpInfo.current.password.length >= 6
+                                ? "border-gray-500 shadow-sm shadow-green-500"
+                                : ""
                         }
                 
                 `} />
@@ -197,8 +212,9 @@ export default function SignUp({ setMode, setIsLoggedIn }) {
 
 
             <button
-                className="relative w-full py-2 hover:bg-slate-500 font-semibold rounded-lg text-white tracking-widest text-lg overflow-hidden bg-gray-700 shadow-md group"
+                className="relative w-full py-2 hover:bg-slate-500 font-semibold rounded-lg disabled:bg-gray-500 disabled:cursor-not-allowed text-white tracking-widest text-lg overflow-hidden bg-gray-700 shadow-md group"
                 type="submit"
+                disabled={isButtonDisabled}
 
             >
                 Sign Up

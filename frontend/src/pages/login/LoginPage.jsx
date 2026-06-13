@@ -1,16 +1,22 @@
-import React, { useState } from "react";
+import React, { useState} from "react";
 import { AiFillEye, AiFillEyeInvisible } from "react-icons/ai";
 import { useNavigate } from "react-router-dom";
 import { logIn } from "../../services/api/auth/authApi";
 import { useShowPasswordToggle } from "../../shared/hooks/useShowPassword";
 import { validatePassword, validatePhoneNumber } from "../../shared/utilis/Validators";
+
+const loginInfo = {
+  phone: "",
+  password: "",
+};
+
 export default function LoginPage({ setMode, setIsLoggedIn }) {
-  const [phone, setPhone] = useState("");
-  const [password, setPassword] = useState("");
+
   const [phoneerror, setPhoneError] = useState("");
   const [passworderror, setPasswordError] = useState("");
   const [loginStatus, setLoginStatus] = useState("");
   const [showPassword, togglePassword] = useShowPasswordToggle();
+
 
   const navigate = useNavigate();
 
@@ -20,7 +26,7 @@ export default function LoginPage({ setMode, setIsLoggedIn }) {
     // Remove non-digit characters
     phoneValue = phoneValue.replace(/\D/g, "");
 
-    setPhone(phoneValue);
+    loginInfo.phone = phoneValue;
     setPhoneError(validatePhoneNumber(phoneValue));
 
   };
@@ -28,7 +34,7 @@ export default function LoginPage({ setMode, setIsLoggedIn }) {
   const handlePasswordValidation = (e) => {
     let passwordValue = e.target.value;
 
-    setPassword(passwordValue);
+    loginInfo.password = passwordValue;
     setPasswordError(validatePassword(passwordValue));
 
   };
@@ -36,15 +42,15 @@ export default function LoginPage({ setMode, setIsLoggedIn }) {
   const handleSubmit = async (e) => {
     e.preventDefault();
 
-    if (phone.length === 0 && password.length === 0) {
+    if (loginInfo.phone.length === 0 && loginInfo.password.length === 0) {
       setLoginStatus("Both Fields are empty");
       return;
     }
-    else if (phone.length !== 0 && password.length !== 0) {
+    else if (loginInfo.phone.length !== 0 && loginInfo.password.length !== 0) {
       setLoginStatus("");
     }
 
-    const logInResponse = await logIn(phone, password);
+    const logInResponse = await logIn(loginInfo.phone, loginInfo.password);
 
     if (logInResponse.message === "User not found") {
       setLoginStatus("User not found");
@@ -54,9 +60,9 @@ export default function LoginPage({ setMode, setIsLoggedIn }) {
       setLoginStatus("Invalid Password");
     }
     else if (logInResponse.message === "Login successfull") {
+      
       setIsLoggedIn(true);
-      navigate("/main");
-      alert("Login successfull");
+      navigate("/main/printinvoice");
     }
     else {
       setLoginStatus(logInResponse.message);
@@ -82,14 +88,14 @@ export default function LoginPage({ setMode, setIsLoggedIn }) {
           inputMode="numeric"
           id="phone"
           placeholder=" "
-          value={phone}
+          // ref={phone}
           onChange={handlePhoneValidation}
           className={`peer w-full focus:shadow-md border border-gray-500 rounded-md px-3 py-2 bg-transparent focus:border-gray-500 focus:outline-none " +
             ${phoneerror === "Phone number does not exist" || loginStatus === "Both fields are empty"
               ? "border-gray-500 shadow-sm shadow-red-500"
-              : phone.length === 10 && phoneerror !== "Phone number does not exist" 
-              ? "border-gray-500 shadow-sm shadow-green-500"
-              : ""
+              : loginInfo.phone.length === 10 && phoneerror !== "Phone number does not exist"
+                ? "border-gray-500 shadow-sm shadow-green-500"
+                : ""
             }
       `}
         />
@@ -109,9 +115,9 @@ export default function LoginPage({ setMode, setIsLoggedIn }) {
         >
           Phone Number
         </label>
-        {/* {phoneerror && (
-          <p className="text-grey-500 text-sm mt-1">{phoneerror}</p>
-        )} */}
+        {loginStatus === "User not found" && (
+          <p className="text-grey-500 text-sm mt-1">{loginStatus}</p>
+        )}
 
       </div>
 
@@ -121,14 +127,15 @@ export default function LoginPage({ setMode, setIsLoggedIn }) {
           type={showPassword ? "text" : "password"}
           id="password"
           placeholder=" "
-          value={password}
+          // value={loginInfo.password}
+          // ref={password}
           onChange={handlePasswordValidation}
           className={`peer w-full focus:shadow-md border border-gray-500 rounded-md px-3 py-2 bg-transparent focus:border-gray-500 focus:outline-none
             ${passworderror === "Password  must be 6 characters long" || loginStatus === "Invalid Password" || loginStatus === "User not found" || loginStatus === "Both fields are empty"
               ? "border-gray-500 shadow-sm shadow-red-500"
-              : password.length >= 6
-              ? "border-gray-500 shadow-sm shadow-green-500"
-              : ""
+              : loginInfo.password.length >= 6
+                ? "border-gray-500 shadow-sm shadow-green-500"
+                : ""
             }
       `}
         />
@@ -148,9 +155,9 @@ export default function LoginPage({ setMode, setIsLoggedIn }) {
         >
           Password
         </label>
-        {/* {passworderror && (
-          <p className="text-grey-500 text-sm mt-1">{passworderror}</p>
-        )} */}
+        {loginStatus === "Invalid Password" && (
+          <p className="text-grey-500 text-sm mt-1">{loginStatus}</p>
+        )}
         <div
           className="absolute right-3 top-3 cursor-pointer text-gray-700 text-xl"
         >
@@ -187,11 +194,7 @@ export default function LoginPage({ setMode, setIsLoggedIn }) {
         <span className="absolute bottom-0 right-0 w-[2px] h-0 bg-white transition-all duration-500 group-hover:h-full group-hover:-translate-y-full"></span>
 
       </button>
-      {loginStatus && (
-        <p className="text-gray-500 text-sm mt-2 text-center font-bold">
-          {loginStatus}
-        </p>
-      )}
+      
       {/* Register */}
       <p className="mt-4 text-sm text-center text-gray-600 font-bold">
         New User?{" "}
@@ -202,6 +205,7 @@ export default function LoginPage({ setMode, setIsLoggedIn }) {
         >
           Sign Up
         </button>
+        
       </p>
     </form>
   );
