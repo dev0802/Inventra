@@ -120,10 +120,11 @@ exports.getInvoiceByNumberAndFY = async (req, res) => {
 
 exports.updateInvoice = async (req, res) => {
   try {
-    const { invoice_id } = req.params;
-    const result = await printInvoiceService.updateInvoice(invoice_id, req.body);
+    const { invoice_number } = req.params;
+    const result = await printInvoiceService.updateInvoice(invoice_number, req.body);
     res.status(200).json(result);
   } catch (error) {
+    console.error("UPDATE INVOICE ERROR:", error.message);
     res.status(500).json({ message: "Internal Server Error" });
   }
 };

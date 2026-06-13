@@ -46,7 +46,7 @@ let customerData = {
   customerGstin: "",
 };
 
-export default function PrintInvoice({ manualInvoice, setManualInvoice }) {
+export default function PrintInvoice() {
   const [includeGST, setIncludeGST] = useState(true);
   const [selectedKarat, setSelectedKarat] = useState("24K");
   const [goldInvoice, setGoldInvoice] = useState(true);
@@ -65,6 +65,7 @@ export default function PrintInvoice({ manualInvoice, setManualInvoice }) {
     title: "",
     message: "",
   });
+  const [manualInvoice, setManualInvoice] = useState(false);
 
   const [activeTab, setActiveTab] = useState("Customer Details");
 
@@ -75,7 +76,7 @@ export default function PrintInvoice({ manualInvoice, setManualInvoice }) {
       itemDescription: "",
       hsnCode: "",
       quantity: "",
-      unit: "Gms."||"Ct.",
+      unit: "Gms." || "Ct.",
       rate: showGoldRate?.showGold24K || "",
       unitPrice: true,
       makingCharges: "10",
@@ -156,7 +157,7 @@ export default function PrintInvoice({ manualInvoice, setManualInvoice }) {
     ]);
   };
 
-  
+
 
   const handleRowChange = (id, field, value) => {
     setRows((prev) =>
@@ -213,6 +214,7 @@ export default function PrintInvoice({ manualInvoice, setManualInvoice }) {
         makingCharges: "10",
       },
     ]);
+    setManualInvoice(false)
   };
   console.log("Show Gold Rate--> ", showGoldRate);
   const handleFetchGoldRateByDate = async (date) => {
@@ -409,14 +411,12 @@ export default function PrintInvoice({ manualInvoice, setManualInvoice }) {
           console.log("group code", groupId)
           const newRows = result.map((item, i) => {
             const desc = (item.item_description || "").toLowerCase();
-            const isDiamondOrSolitaire =
-              desc.includes("diamond") || desc.includes("solitaire");
             const goldRateByDescription = handleGoldRateByDecription(
               item.item_description,
             );
             const baseRow = i === 0
-            ? { ...currentRow }
-            : {
+              ? { ...currentRow }
+              : {
                 id: generateId(),
                 unit: "Gms.",
                 rate: "",
@@ -424,17 +424,19 @@ export default function PrintInvoice({ manualInvoice, setManualInvoice }) {
                 makingCharges: "",
               };
 
-          return {
-            ...baseRow,
-            groupId,           // ← spread ke BAAD explicitly set karo
-            itemDescription: item.item_description,
-            hsnCode: item.hsn_code,
-            quantity: item.net_weight,
-            unitPrice: i === 0 ? true : false,
-            unit: isDiamondOrSolitaire ? "Ct." : i === 0 ? currentRow.unit : "Gms.",
-            rate: i === 0 ? goldRateByDescription : "",
-          };
-        });
+            return {
+              ...baseRow,
+              groupId,
+              itemDescription: item.item_description,
+              hsnCode: item.hsn_code,
+              quantity: item.net_weight,
+              unitPrice: i === 0 ? true : false,
+              unit: i === 0
+                ? currentRow.unit
+                : (desc.includes("diamond") || desc.includes("solitaire") ? "Ct." : "Gms."),
+              rate: i === 0 ? goldRateByDescription : "",
+            };
+          });
 
           console.log("New Rows:", newRows);
           setRows((prev) => {
@@ -454,34 +456,34 @@ export default function PrintInvoice({ manualInvoice, setManualInvoice }) {
     }
   };
   const handleDeleteRow = (id) => {
-  setRows((prev) => {
-    const deletedRow = prev.find((row) => row.id === id);
-    if (!deletedRow) return prev;
+    setRows((prev) => {
+      const deletedRow = prev.find((row) => row.id === id);
+      if (!deletedRow) return prev;
 
-    let newRows;
-    if (deletedRow.groupId) {
-      newRows = prev.filter((row) => row.groupId !== deletedRow.groupId);
-    } else {
-      newRows = prev.filter((row) => row.id !== id);
-    }
+      let newRows;
+      if (deletedRow.groupId) {
+        newRows = prev.filter((row) => row.groupId !== deletedRow.groupId);
+      } else {
+        newRows = prev.filter((row) => row.id !== id);
+      }
 
-    if (newRows.length === 0) {
-      return [{
-        id: 1,
-        itemCode: "",
-        itemDescription: "",
-        hsnCode: "",
-        quantity: "",
-        unit: "Gms.",
-        rate: "",
-        unitPrice: true,
-        makingCharges: "10",
-      }];
-    }
+      if (newRows.length === 0) {
+        return [{
+          id: 1,
+          itemCode: "",
+          itemDescription: "",
+          hsnCode: "",
+          quantity: "",
+          unit: "Gms.",
+          rate: "",
+          unitPrice: true,
+          makingCharges: "10",
+        }];
+      }
 
-    return newRows;
-  });
-};
+      return newRows;
+    });
+  };
   const handlePrintInvoice = async () => {
     if (!customerData.customerName.trim())
       return showNotification("error", "Error", "Customer Name is required!");
@@ -698,18 +700,12 @@ export default function PrintInvoice({ manualInvoice, setManualInvoice }) {
       document.body.removeChild(link);
 
       handleReset();
+
     } catch (err) {
       console.error("Invoice error:", err);
       showNotification("error", "Error", "Failed to generate invoice");
     }
   };
-  useEffect(() => {
-    if (manualInvoice) {
-      handleManualInvoice();
-      setManualInvoice(false);
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [manualInvoice]);
 
   const countryCodes = [{ label: "India (+91)", value: "+91" }];
   console.log("Gold Invoice: ", goldInvoice);
@@ -749,23 +745,23 @@ export default function PrintInvoice({ manualInvoice, setManualInvoice }) {
             <div className="absolute right-0">
               <div className="relative w-40 h-10 bg-gray-100 rounded-full cursor-pointer flex items-center">
                 <div className={`absolute w-2/4 h-full bg-gray-500 rounded-full transition-all duration-150
-                  ${goldInvoice ? "left-0" : "left-1/2"}`}/>
-            <span
-        onClick={() => setGoldInvoice(true)}
-        className={`z-10 w-2/4 text-center text-sm font-medium cursor-pointer transition-colors
+                  ${goldInvoice ? "left-0" : "left-1/2"}`} />
+                <span
+                  onClick={() => setGoldInvoice(true)}
+                  className={`z-10 w-2/4 text-center text-sm font-medium cursor-pointer transition-colors
           ${goldInvoice ? "text-white" : "text-gray-500"}`}
-      >
-        Gold
-      </span>
-      <span
-        onClick={() => setGoldInvoice(false)}
-        className={`z-10 w-2/4 text-center text-sm font-medium cursor-pointer transition-colors
+                >
+                  Gold
+                </span>
+                <span
+                  onClick={() => setGoldInvoice(false)}
+                  className={`z-10 w-2/4 text-center text-sm font-medium cursor-pointer transition-colors
           ${!goldInvoice ? "text-white" : "text-gray-500"}`}
-      >
-        Silver
-      </span>
-    </div>
-  </div>
+                >
+                  Silver
+                </span>
+              </div>
+            </div>
           )}
         </div>
 
@@ -785,8 +781,22 @@ export default function PrintInvoice({ manualInvoice, setManualInvoice }) {
               >
                 GST
               </label>
+              <div className="flex items-center gap-2">
+                <input
+                  type="checkbox"
+                  checked={manualInvoice}
+                  onChange={(e) => setManualInvoice(e.target.checked)}
+                  className="w-5 h-5 cursor-pointer accent-gray-600"
+                />
+                <label
+                  htmlFor="manualInvoice"
+                  className="text-md font-medium text-gray-700 cursor-pointer"
+                >
+                  Manual Invoice
+                </label>
+              </div>
             </div>
-            
+
             <div className="flex items-center gap-3">
               <input
                 type="date"
@@ -1287,9 +1297,15 @@ export default function PrintInvoice({ manualInvoice, setManualInvoice }) {
               <button
                 type="button"
                 onClick={() => {
+                  if (manualInvoice === true) {
+                    handleManualInvoice();
+                    return;
+                  }
+
                   const allEmpty = rows.every(
                     (row) => !row.itemCode || row.itemCode.trim() === "",
                   );
+
                   if (allEmpty) {
                     handleGenerateInvoice(
                       rows,

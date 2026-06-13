@@ -21,8 +21,6 @@ import DuplicateInvoiceCopyPdf from "../../shared/component/DuplicateInvoiceCopy
 import InvoicePdf from "../../shared/component/InvoicePdf";
 export default function MainPage({
   setIsLoggedIn,
-  manualInvoice,
-  setManualInvoice,
 }) {
   const navigate = useNavigate();
   const todayDate = () => {
@@ -303,68 +301,60 @@ export default function MainPage({
     if (e.key === "Enter" && e.target.value) {
       try {
         const result = await getProductByItemCode(e.target.value);
+        console.log("result:", result)
         if (result && result.length > 0) {
           setFoundInvoice((prev) => {
             const items = [...prev.items];
             const currentItem = items[idx];
-            const newItems = result.map((item, i) => ({
-              ...(i === 0
-                ? currentItem
+            const newGroupId = crypto.randomUUID();
+            const newItems = result.map((item, i) => {
+              const base = i === 0
+                ? { ...currentItem }
                 : {
                   unit: "Gms.",
                   rate: "",
                   unit_price: false,
                   making_charges: "",
-                }),
-              item_code: e.target.value,
-              code: e.target_value,
-              item_description: item.item_description,
-              hsn_code: item.hsn_code,
-              quantity: item.gross_weight,
-              unit_price: i === 0 ? true : false,
-            }));
+                };
+
+              return {
+                ...base,
+                groupId: newGroupId,
+                item_code: e.target.value,
+                code: e.target.value,
+                item_description: item.item_description,
+                hsn_code: item.hsn_code,
+                quantity: item.net_weight,
+                unit_price: i === 0,
+                showItemCodeInput: false,
+                is_main_item: i === 0,
+              };
+            });
+
+            console.log("newItems before splice:", newItems);
             items.splice(idx, 1, ...newItems);
             return { ...prev, items };
           });
         } else {
-          showNotification(
-            "error",
-            "Error",
-            "This product is sold or deleted.",
-          );
+          showNotification("error", "Error", "This product is sold or deleted.");
         }
       } catch (error) {
         console.error("Error:", error);
       }
     }
   };
-  const [latestInvoiceNumber, setLatestInvoiceNumber] = useState(null);
+
   const handleDeleteInvoice = async () => {
     try {
       await deleteInvoice(foundInvoice.invoice_id);
-      showNotification("success", "Deleted", "Invoice deleted successfully!");
-      // setShowDeleteConfirm(false);
+      showNotification("success", "Deleted", "Invoice deleted.");
       setShowUpdateInvoice(false);
       setFoundInvoice(null);
-    } catch {
-      showNotification("error", "Error", "Failed to delete invoice.");
+    } catch (err) {
+      showNotification("error", "Error", "Only the last invoice can be deleted");
     }
   };
 
-  // const handleSearchInvoice = async () => {
-  //   if (!updateSearch.invoiceNumber)
-  //     return showNotification("error", "Error", "Invoice number required!");
-  //   try {
-  //     const res = await getInvoiceByNumberAndFY(
-  //       updateSearch.invoiceNumber,
-  //       updateSearch.financialYear,
-  //     );
-  //     setFoundInvoice(res);
-  //   } catch {
-  //     setFoundInvoice(null);
-  //     showNotification("error", "Not Found", "No invoice found.");
-  //   }
-  // };
   const handleSearchInvoice = async () => {
     if (!updateSearch.invoiceNumber)
       return showNotification("error", "Error", "Invoice number required!");
@@ -373,15 +363,21 @@ export default function MainPage({
         updateSearch.invoiceNumber,
         updateSearch.financialYear,
       );
+      let currentGroupId = null;
+      const itemsWithGroup = res.items.map((item) => {
+        if (item.is_main_item) {
+          currentGroupId = crypto.randomUUID();
+        }
+        return { ...item, groupId: currentGroupId };
+      });
+      res.items = itemsWithGroup;
       setFoundInvoice(res);
-      setLatestInvoiceNumber(res.latest_invoice_number); // ← yahan
     } catch {
       setFoundInvoice(null);
       showNotification("error", "Not Found", "No invoice found.");
     }
   };
-  console.log("invoice_number:", foundInvoice?.invoice_number);
-console.log("latest_invoice_number:", latestInvoiceNumber);
+
   const handleItemChange = (idx, field, value) => {
     setFoundInvoice((prev) => {
       const items = [...prev.items];
@@ -401,22 +397,42 @@ console.log("latest_invoice_number:", latestInvoiceNumber);
         unit: "Gms.",
         rate: "",
         unit_price: false,
-        making_charges: "",
+        making_charges: "10",
+        showItemCodeInput: true,
       });
       return { ...prev, items };
     });
   };
 
   const handleDeleteItem = (idx) => {
+    const deletedItem = foundInvoice.items[idx];
+
+    const itemsAfterDelete = deletedItem.groupId
+      ? foundInvoice.items.filter((item) => item.groupId !== deletedItem.groupId)
+      : foundInvoice.items.filter((_, i) => i !== idx);
+
+    if (itemsAfterDelete.length === 0) {
+      showNotification("error", "Error", "Row can't be deleted");
+      return;
+    }
+
+    const mainItemsAfter = itemsAfterDelete.filter((item) => item.is_main_item);
+    if (mainItemsAfter.length === 0) {
+      showNotification("error", "Error", "At least one item is required");
+      return;
+    }
+
     setFoundInvoice((prev) => ({
       ...prev,
-      items: prev.items.filter((_, i) => i !== idx),
+      items: itemsAfterDelete,
     }));
   };
 
   const handleSaveInvoice = async () => {
+    console.log("invoice_number:", foundInvoice.invoice_number); // ← check
+    console.log("invoice_id:", foundInvoice.invoice_id);
     try {
-      await updateInvoice(foundInvoice.invoice_id, {
+      await updateInvoice(foundInvoice.invoice_number, {
         customer: foundInvoice.customer,
         items: foundInvoice.items,
         invoice_date: foundInvoice.invoice_date,
@@ -445,7 +461,8 @@ console.log("latest_invoice_number:", latestInvoiceNumber);
       showNotification("success", "Success", "Invoice updated & printed!");
       setShowUpdateInvoice(false);
       setFoundInvoice(null);
-    } catch {
+    } catch (err) {
+      console.error("SAVE ERROR:", err);
       showNotification("error", "Error", "Failed to update invoice.");
     }
   };
@@ -563,15 +580,6 @@ console.log("latest_invoice_number:", latestInvoiceNumber);
                   className="w-full text-left px-4 py-2 text-sm text-white hover:bg-gray-400 "
                 >
                   Update Invoice
-                </button>
-                <button
-                  onClick={() => {
-                    setManualInvoice(true);
-                    setShowSettingDropdown(false);
-                  }}
-                  className="w-full text-left px-4 py-2 text-sm text-white hover:bg-gray-400 "
-                >
-                  Manual Invoice
                 </button>
                 <button
                   onClick={handleLogout}
@@ -747,23 +755,14 @@ console.log("latest_invoice_number:", latestInvoiceNumber);
                     <table className="w-full text-sm border-collapse min-w-[900px]">
                       <thead>
                         <tr className="text-gray-600">
-                          {[
-                            "Sno.",
-                            "Item Name",
-                            "Item Qty",
-                            "Unit",
-                            "Rate",
-                            "Unit Price",
-                            "Making (%)",
-                            "Actions",
-                          ].map((h) => (
-                            <th
-                              key={h}
-                              className="p-2 border border-gray-300 text-center font-semibold text-xs"
-                            >
-                              {h}
-                            </th>
-                          ))}
+                          <th className="p-2 border border-gray-300 text-center font-semibold text-xs">Sno.</th>
+                          <th className="p-2 border border-gray-300 w-[20%] text-center font-semibold text-xs">Item Name</th>
+                          <th className="p-2 border border-gray-300 text-center font-semibold text-xs">Item Qty</th>
+                          <th className="p-2 border border-gray-300 text-center font-semibold text-xs">Unit</th>
+                          <th className="p-2 border border-gray-300 text-center font-semibold text-xs">Rate</th>
+                          <th className="p-2 border border-gray-300 text-center font-semibold text-xs">Unit Price</th>
+                          <th className="p-2 border border-gray-300 text-center font-semibold text-xs">Making (%)</th>
+                          <th className="p-2 border border-gray-300 text-center font-semibold text-xs">Actions</th>
                         </tr>
                       </thead>
                       <tbody>
@@ -777,7 +776,7 @@ console.log("latest_invoice_number:", latestInvoiceNumber);
                                   .length
                                 : ""}
                             </td>
-                            <td className="p-1 border border-gray-300">
+                            {/* <td className="p-1 border border-gray-300">
                               <input
                                 value={item.item_code || item.code || ""}
                                 onChange={(e) =>
@@ -788,8 +787,8 @@ console.log("latest_invoice_number:", latestInvoiceNumber);
                                 }
                                 className="border rounded px-1.5 py-1 w-16 bg-white text-xs"
                               />
-                            </td>
-                            <td className="p-1 border border-gray-300">
+                            </td> */}
+                            {/* <td className="p-1 border border-gray-300">
                               <input
                                 value={item.item_description || ""}
                                 onChange={(e) =>
@@ -801,6 +800,22 @@ console.log("latest_invoice_number:", latestInvoiceNumber);
                                 }
                                 className="border rounded px-1.5 py-1 w-44 bg-white text-xs"
                               />
+                            </td> */}
+                            <td className="p-1 border border-gray-300">
+                              {item.showItemCodeInput ? (
+                                <input
+                                  placeholder="Item Code..."
+                                  autoFocus
+                                  onKeyDown={(e) => handleUpdateItemCodeFetch(e, idx)}
+                                  className="border rounded px-1.5 py-1 w-44 bg-yellow-50 text-xs"
+                                />
+                              ) : (
+                                <input
+                                  value={item.item_description || ""}
+                                  onChange={(e) => handleItemChange(idx, "item_description", e.target.value)}
+                                  className="border rounded px-1.5 py-1 w-full bg-white text-xs"
+                                />
+                              )}
                             </td>
                             <td className="p-1 border border-gray-300">
                               <input
@@ -911,12 +926,7 @@ console.log("latest_invoice_number:", latestInvoiceNumber);
                   <div className="flex justify-center gap-3 px-6 py-4">
                     <button
                       onClick={handleDeleteInvoice}
-                      disabled={foundInvoice?.invoice_number !== latestInvoiceNumber}
-                      className={`text-white text-sm font-semibold px-5 py-2 rounded-full border border-white/40 transition-all
-    ${foundInvoice?.invoice_number !== latestInvoiceNumber
-                          ? "bg-gray-400 cursor-not-allowed opacity-50"
-                          : "bg-gradient-to-r from-gray-600 to-gray-700 hover:from-gray-700 hover:to-gray-800"
-                        }`}
+                      className="text-white text-sm font-semibold px-5 py-2 rounded-full border border-white/40 bg-gradient-to-r from-gray-600 to-gray-700 hover:from-gray-700 hover:to-gray-800 transition-all"
                     >
                       Delete Invoice
                     </button>

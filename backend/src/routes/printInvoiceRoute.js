@@ -11,7 +11,7 @@ router.post('/save-invoice', printInvoiceController.saveInvoice);
 router.get('/get-invoice/:invoice_id', printInvoiceController.getInvoiceById);
 router.get('/get-invoice-by-fy/:financialYear', printInvoiceController.getInvoiceByFY);
 router.get('/get-by-number', printInvoiceController.getInvoiceByNumberAndFY);
-router.put('/update/:invoice_id', printInvoiceController.updateInvoice);
+router.put('/update/:invoice_number', printInvoiceController.updateInvoice);
 router.delete('/delete/:invoice_id', printInvoiceController.deleteInvoice);
 router.post('/general-invoice', printInvoiceController.generateInvoice);
 module.exports = router;

@@ -18,7 +18,6 @@ function PageLoader() {
 
 export default function LayoutRoutes() {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
-  const [manualInvoice, setManualInvoice] = useState(false);
   return (
     <div className="relative min-h-screen">
 
@@ -31,7 +30,7 @@ export default function LayoutRoutes() {
             path="/"
             element={
               <div className={!isLoggedIn ? "blur-sm pointer-events-none" : ""}>
-                <MainPage setIsLoggedIn={setIsLoggedIn} manualInvoice={manualInvoice} setManualInvoice={setManualInvoice} />
+                <MainPage setIsLoggedIn={setIsLoggedIn}/>
               </div>
             }
           />
@@ -40,13 +39,13 @@ export default function LayoutRoutes() {
             path="/main/*"
             element={
               <div className={!isLoggedIn ? "blur-sm pointer-events-none" : ""}>
-                <MainPage setIsLoggedIn={setIsLoggedIn} manualInvoice={manualInvoice} setManualInvoice={setManualInvoice} />
+                <MainPage setIsLoggedIn={setIsLoggedIn}/>
               </div>
             }
           >
             <Route path="addproducts"  element={<AddProduct />} />
             <Route path="viewproducts" element={<ViewProduct />} />
-            <Route path="printinvoice" element={<PrintInvoice manualInvoice={manualInvoice} setManualInvoice={setManualInvoice} />} />
+            <Route path="printinvoice" element={<PrintInvoice/>} />
             <Route path="report"       element={<Report />} />
           </Route>
 

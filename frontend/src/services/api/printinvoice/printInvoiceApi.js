@@ -137,8 +137,8 @@ export const getInvoiceByNumberAndFY = async (invoice_number, financial_year) =>
     return data;
 };
 
-export const updateInvoice = async (invoice_id, { customer, items, invoice_date }) => {
-    const response = await fetch(`${process.env.REACT_APP_API_UPDATE_INVOICE}/${invoice_id}`, {
+export const updateInvoice = async (invoice_number, { customer, items, invoice_date }) => {
+    const response = await fetch(`${process.env.REACT_APP_API_UPDATE_INVOICE}/${invoice_number}`, {
         method: 'PUT',
         headers: {
             'Content-Type': 'application/json',
