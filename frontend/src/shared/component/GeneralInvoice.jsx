@@ -217,8 +217,8 @@ export default function GeneralInvoice({
     customerData.address_district || customerData.district,
     customerData.address_state || customerData.state,
     customerData.address_pincode ||
-      customerData.pinCode ||
-      customerData.pincode,
+    customerData.pinCode ||
+    customerData.pincode,
   ]
     .filter(Boolean)
     .join(", ");
@@ -278,21 +278,21 @@ export default function GeneralInvoice({
     let lineTotal = 0;
 
     if (isGold && isGoldRate) {
-      
+
       makingAmt =
         makingPct !== 0 ? Math.round((baseAmt * makingPct) / 100) : null;
       lineTotal = baseAmt + (makingAmt || 0);
     } else if (isDiamond && isGoldRate) {
-      
+
       makingAmt =
         makingPct !== 0 ? Math.round((baseAmt * makingPct) / 100) : null;
       lineTotal = baseAmt + (makingAmt || 0);
     } else if (isDiamond && !isGoldRate) {
-      
+
       lineTotal = rate;
       makingAmt = null;
     } else if (isGold && !isGoldRate) {
-      
+
       lineTotal = rate;
       makingAmt = null;
     } else {
@@ -318,7 +318,7 @@ export default function GeneralInvoice({
   const placeOfSupply = "Punjab (03)";
 
   // ── S No counter (sirf main items) ──
-//   let snoCounter = 0;
+  //   let snoCounter = 0;
 
   return (
     <Document>
@@ -420,9 +420,9 @@ export default function GeneralInvoice({
 
             const sno = isMain
               ? computed.slice(0, idx + 1).filter((r) => {
-                  const d = (r.itemDescription || "").toUpperCase();
-                  return !stoneKeywords.some((k) => d.includes(k));
-                }).length
+                const d = (r.itemDescription || "").toUpperCase();
+                return !stoneKeywords.some((k) => d.includes(k));
+              }).length
               : 0;
             return (
               <View
@@ -433,7 +433,9 @@ export default function GeneralInvoice({
                 <Text style={[S.td, S.cDesc, S.bl]}>{row.itemDescription}</Text>
                 <Text style={[S.td, S.cHsn, S.bl]}>{row.hsnCode}</Text>
                 <Text style={[S.td, S.cQty, S.bl]}>
-                  {row.quantity} {row.unit}
+                  {row.unit === "Ct."
+                    ? `${parseFloat(row.quantity).toFixed(2)} ${row.unit}`
+                    : `${parseFloat(row.quantity).toFixed(3)} ${row.unit}`}
                 </Text>
                 <Text style={[S.td, S.cRate, S.bl]}>{row.rate}</Text>
                 <Text style={[S.td, S.cMakePct, S.bl]}>
@@ -460,13 +462,13 @@ export default function GeneralInvoice({
             marginTop: 4,
           }}
         >
-          <View style={{ flexDirection: "row", alignItems: "center" }}>
-            <Text style={{ width: 262 }}></Text>
-
-            <Text style={{ fontSize: 8.5 }}>
-              <Text style={{ fontFamily: "Helvetica-Bold" }}>
-                {goldInvoice === true ? `Total Gold Wt     ` : `Total Wt     `}
-              </Text>
+          <View style={{ flexDirection: "row", marginTop: 4 }}>
+            <Text style={{ width: 22 }}></Text>
+            <Text style={{ width: 211, paddingHorizontal: 4 }}></Text>
+            <Text style={{ width: 80, fontFamily: "Helvetica-Bold", fontSize: 8.5, textAlign: "right" }}>
+              {goldInvoice === true ? `Total Gold Wt` : `Total Wt`}
+            </Text>
+            <Text style={{ width: 58, paddingHorizontal: 3, fontSize: 8.5, textAlign: "center" }}>
               {totalGoldWt.toFixed(3)} Gms.
             </Text>
           </View>

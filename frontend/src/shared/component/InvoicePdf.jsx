@@ -217,8 +217,8 @@ export default function InvoicePdf({
     customerData.address_district || customerData.district,
     customerData.address_state || customerData.state,
     customerData.address_pincode ||
-      customerData.pinCode ||
-      customerData.pincode,
+    customerData.pinCode ||
+    customerData.pincode,
   ]
     .filter(Boolean)
     .join(", ");
@@ -425,7 +425,9 @@ export default function InvoicePdf({
                 <Text style={[S.td, S.cDesc, S.bl]}>{row.itemDescription}</Text>
                 <Text style={[S.td, S.cHsn, S.bl]}>{row.hsnCode}</Text>
                 <Text style={[S.td, S.cQty, S.bl]}>
-                  {row.quantity} {row.unit}
+                  {row.unit === "Ct."
+                    ? `${parseFloat(row.quantity).toFixed(2)} ${row.unit}`
+                    : `${parseFloat(row.quantity).toFixed(3)} ${row.unit}`}
                 </Text>
                 <Text style={[S.td, S.cRate, S.bl]}>{row.rate}</Text>
                 <Text style={[S.td, S.cMakePct, S.bl]}>
@@ -456,13 +458,13 @@ export default function InvoicePdf({
             marginTop: 4,
           }}
         >
-          <View style={{ flexDirection: "row", alignItems: "center" }}>
-            <Text style={{ width: 262 }}></Text>
-
-            <Text style={{ fontSize: 8.5 }}>
-              <Text style={{ fontFamily: "Helvetica-Bold" }}>
-                {goldInvoice === true ? `Total Gold Wt     ` : `Total Wt     `}
-              </Text>
+          <View style={{ flexDirection: "row", marginTop: 4 }}>
+            <Text style={{ width: 22 }}></Text>
+            <Text style={{ width: 211, paddingHorizontal: 4 }}></Text>
+            <Text style={{ width: 80, fontFamily: "Helvetica-Bold", fontSize: 8.5, textAlign: "right" }}>
+              {goldInvoice === true ? `Total Gold Wt` : `Total Wt`}
+            </Text>
+            <Text style={{ width: 58, paddingHorizontal: 3, fontSize: 8.5, textAlign: "center" }}>
               {totalGoldWt.toFixed(3)} Gms.
             </Text>
           </View>

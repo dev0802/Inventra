@@ -217,8 +217,8 @@ export default function ManualInvoice({
     customerData.address_district || customerData.district,
     customerData.address_state || customerData.state,
     customerData.address_pincode ||
-      customerData.pinCode ||
-      customerData.pincode,
+    customerData.pinCode ||
+    customerData.pincode,
   ]
     .filter(Boolean)
     .join(", ");
@@ -278,21 +278,21 @@ export default function ManualInvoice({
     let lineTotal = 0;
 
     if (isGold && isGoldRate) {
-      
+
       makingAmt =
         makingPct !== 0 ? Math.round((baseAmt * makingPct) / 100) : null;
       lineTotal = baseAmt + (makingAmt || 0);
     } else if (isDiamond && isGoldRate) {
-      
+
       makingAmt =
         makingPct !== 0 ? Math.round((baseAmt * makingPct) / 100) : null;
       lineTotal = baseAmt + (makingAmt || 0);
     } else if (isDiamond && !isGoldRate) {
-      
+
       lineTotal = rate;
       makingAmt = null;
     } else if (isGold && !isGoldRate) {
-      
+
       lineTotal = rate;
       makingAmt = null;
     } else {
@@ -316,7 +316,7 @@ export default function ManualInvoice({
     .reduce((s, r) => s + (parseFloat(r.quantity) || 0), 0);
 
   const placeOfSupply = "Punjab (03)";
-
+let snoCounter = 0;
   return (
     <Document>
       <Page size="A4" style={S.page}>
@@ -324,7 +324,7 @@ export default function ManualInvoice({
         <View style={{ flexDirection: "row", marginBottom: 5 }}>
           {/* Left - Logo only, white bg */}
           <View style={S.headerLeft}>
-            <Image src={logo} style={{ width: 40  , height: 40 }} />
+            <Image src={logo} style={{ width: 40, height: 40 }} />
           </View>
 
           {/* Right - Golden bg, red text, golden borders top/bottom */}
@@ -361,13 +361,13 @@ export default function ManualInvoice({
             <Text style={S.billLabel}>Billed To</Text>
 
             {name ? <Text style={S.billValue}>{name}</Text> : null}
-            
+
             {address ? <Text style={S.billValue}>{address}</Text> : null}
-            
+
             {phone ? <Text style={S.billValue}>{phone}</Text> : null}
-            
+
             {email ? <Text style={S.billValue}>{email}</Text> : null}
-            
+
             {custGstin ? (
               <Text style={S.billValue}>GSTIN: {custGstin}</Text>
             ) : null}
@@ -380,7 +380,7 @@ export default function ManualInvoice({
             </View>
             <View style={S.metaLine}>
               <Text style={S.metaKey}>Invoice Date:</Text>
-              
+
               <Text style={S.metaVal}>{formatDate(invoiceDate)}</Text>
             </View>
             <View style={S.metaLine}>
@@ -404,48 +404,38 @@ export default function ManualInvoice({
             <Text style={[S.th, S.cAmt, S.bl]}>Amount (Rs)</Text>
           </View>
 
-          {computed.map((row, idx) => {
-            const stoneKeywords = [
-              "STONES",
-              "DIAMOND",
-              "SOLITAIRE",
-              "MINNA",
-              "MOTI",
-              "COLOR STONE",
-            ];
-            const desc = (row.itemDescription || "").toUpperCase();
-            const isMain = !stoneKeywords.some((k) => desc.includes(k));
+          
 
-            const sno = isMain
-              ? computed.slice(0, idx + 1).filter((r) => {
-                  const d = (r.itemDescription || "").toUpperCase();
-                  return !stoneKeywords.some((k) => d.includes(k));
-                }).length
-              : 0;
-            return (
-              <View
-                key={row.id || idx}
-                style={idx === computed.length - 1 ? S.trowLast : S.trow}
-              >
-                <Text style={[S.td, S.cSno]}>{isMain ? sno : ""}</Text>
-                <Text style={[S.td, S.cDesc, S.bl]}>{row.itemDescription}</Text>
-                <Text style={[S.td, S.cHsn, S.bl]}>{row.hsnCode}</Text>
-                <Text style={[S.td, S.cQty, S.bl]}>
-                  {row.quantity} {row.unit}
-                </Text>
-                <Text style={[S.td, S.cRate, S.bl]}>{row.rate}</Text>
-                <Text style={[S.td, S.cMakePct, S.bl]}>
-                  {row.unit === "Ct." ? "" : row.makingCharges || ""}
-                </Text>
-                <Text style={[S.td, S.cMakeAmt, S.bl]}>
-                  {row.unit === "Ct." ? "" : row.makingAmt || ""}
-                </Text>
-                <Text style={[S.td, S.cAmt, S.bl]}>
-                  {Math.round(row.lineTotal)}
-                </Text>
-              </View>
-            );
-          })}
+{computed.map((row, idx) => {
+  const stoneKeywords = ["STONES", "DIAMOND", "SOLITAIRE", "MINNA", "MOTI", "COLOR STONE", "COLOURING"];
+  const desc = (row.itemDescription || "").toUpperCase();
+  const isStone = stoneKeywords.some((k) => desc.includes(k));
+  const isMain = !isStone && !!(row.makingCharges && String(row.makingCharges).trim() !== "");
+  if (isMain) snoCounter++;
+
+  return (
+    <View key={row.id || idx} style={idx === computed.length - 1 ? S.trowLast : S.trow}>
+      <Text style={[S.td, S.cSno]}>{isMain ? snoCounter : ""}</Text>
+      <Text style={[S.td, S.cDesc, S.bl]}>{row.itemDescription}</Text>
+      <Text style={[S.td, S.cHsn, S.bl]}>{row.hsnCode}</Text>
+      <Text style={[S.td, S.cQty, S.bl]}>
+        {row.unit === "Ct."
+          ? `${parseFloat(row.quantity).toFixed(2)} ${row.unit}`
+          : `${parseFloat(row.quantity).toFixed(3)} ${row.unit}`}
+      </Text>
+      <Text style={[S.td, S.cRate, S.bl]}>{row.rate}</Text>
+      <Text style={[S.td, S.cMakePct, S.bl]}>
+        {isMain ? row.makingCharges || "" : ""}
+      </Text>
+      <Text style={[S.td, S.cMakeAmt, S.bl]}>
+        {isMain ? row.makingAmt || "" : ""}
+      </Text>
+      <Text style={[S.td, S.cAmt, S.bl]}>
+        {Math.round(row.lineTotal)}
+      </Text>
+    </View>
+  );
+})}
         </View>
 
         {/* ── TOTALS ── */}
@@ -458,13 +448,13 @@ export default function ManualInvoice({
             marginTop: 4,
           }}
         >
-          <View style={{ flexDirection: "row", alignItems: "center" }}>
-            <Text style={{ width: 262 }}></Text>
-
-            <Text style={{ fontSize: 8.5 }}>
-              <Text style={{ fontFamily: "Helvetica-Bold" }}>
-                {goldInvoice === true ? `Total Gold Wt     ` : `Total Wt     `}
-              </Text>
+          <View style={{ flexDirection: "row", marginTop: 4 }}>
+            <Text style={{ width: 22 }}></Text>
+            <Text style={{ width: 211, paddingHorizontal: 4 }}></Text>
+            <Text style={{ width: 80, fontFamily: "Helvetica-Bold", fontSize: 8.5, textAlign: "right" }}>
+              {goldInvoice === true ? `Total Gold Wt` : `Total Wt`}
+            </Text>
+            <Text style={{ width: 58, paddingHorizontal: 3, fontSize: 8.5, textAlign: "center" }}>
               {totalGoldWt.toFixed(3)} Gms.
             </Text>
           </View>

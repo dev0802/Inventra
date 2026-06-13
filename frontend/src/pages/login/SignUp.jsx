@@ -76,7 +76,7 @@ export default function SignUp({ setMode, setIsLoggedIn }) {
         if (signUpResponse.message === "Signup successfull") {
             localStorage.setItem("userNameSignup", signUpResponse.user.name);
             setIsLoggedIn(true);
-            navigate("/main");
+            navigate("/main/printinvoice");
         }
         else if (signUpResponse.message === "Phone Number already exists") {
             setPhoneStatus("Phone number already exists");

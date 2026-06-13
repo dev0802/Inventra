@@ -55,7 +55,13 @@ export default function MainPage({
   });
 
   const [userName, setUserName] = useState("");
-
+  const formatDate = (dateStr) => {
+    return new Date(dateStr).toLocaleDateString("en-IN", {
+      day: "2-digit",
+      month: "2-digit",
+      year: "numeric",
+    });
+  };
   useEffect(() => {
     const checkSession = async () => {
       try {
@@ -241,7 +247,7 @@ export default function MainPage({
       await updateInvoice(foundInvoice.invoice_id, {
         customer: foundInvoice.customer,
         items: foundInvoice.items,
-        invoice_date: foundInvoice.invoice_date,
+        invoice_date: formatDate(foundInvoice.invoice_date),
       });
 
       const blob = await pdf(
@@ -251,7 +257,7 @@ export default function MainPage({
           invoiceNumber={
             foundInvoice.display_number || foundInvoice.invoice_number
           }
-          invoiceDate={foundInvoice.invoice_date}
+          invoiceDate={formatDate(foundInvoice.invoice_date)}
           cgstRate={1.5}
           sgstRate={1.5}
         />,

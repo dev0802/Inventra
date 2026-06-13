@@ -85,10 +85,10 @@ export default function PrintInvoice() {
 
   const handleGoldRateByDecription = (description) => {
     const desc = description.toLowerCase();
-    if (desc.includes("999")) return showGoldRate?.showGold24K || "";
-    if (desc.includes("916")) return showGoldRate?.showGold22K || "";
-    if (desc.includes("750")) return showGoldRate?.showGold18K || "";
-    if (desc.includes("585")) return showGoldRate?.showGold14K || "";
+    if (desc.includes("999") || desc.includes("24kt")) return showGoldRate?.showGold24K || "";
+    if (desc.includes("916") || desc.includes("22kt")) return showGoldRate?.showGold22K || "";
+    if (desc.includes("750") || desc.includes("18kt")) return showGoldRate?.showGold18K || "";
+    if (desc.includes("585") || desc.includes("14kt")) return showGoldRate?.showGold14K || "";
     return "";
   };
 
@@ -156,8 +156,6 @@ export default function PrintInvoice() {
       },
     ]);
   };
-
-
 
   const handleRowChange = (id, field, value) => {
     setRows((prev) =>
@@ -440,8 +438,14 @@ export default function PrintInvoice() {
 
           console.log("New Rows:", newRows);
           setRows((prev) => {
-            const otherRows = prev.filter((row) => row.id !== rowId);
-            return [...otherRows, ...newRows];
+            const currentRow = prev.find((row) => row.id === rowId);
+            const otherRows = currentRow?.groupId
+              ? prev.filter((row) => row.groupId !== currentRow.groupId)
+              : prev.filter((row) => row.id !== rowId);
+            const idx = prev.findIndex((row) => row.id === rowId);
+            const before = otherRows.slice(0, idx);
+            const after = otherRows.slice(idx);
+            return [...before, ...newRows, ...after];
           });
         } else {
           showNotification(
@@ -1155,7 +1159,43 @@ export default function PrintInvoice() {
                         onKeyDown={(e) => handleItemCodeFetch(e, row.id)}
                       />
                     </td>
-                    <td className="p-2 border border-gray-300 ">
+                    <td className="p-2 border border-gray-300">
+                      <div className="relative">
+                        <input
+                          className="border border-gray-300 rounded px-2 py-1 w-full bg-white focus:outline-none text-sm"
+                          placeholder="Search or select..."
+                          value={row._showDropdown ? (row._search || "") : (row.itemDescription || "")}
+                          onChange={(e) => handleRowChange(row.id, "_search", e.target.value)}
+                          onFocus={() => {
+                            handleRowChange(row.id, "_showDropdown", true);
+                            handleRowChange(row.id, "_search", "");
+                          }}
+                          onBlur={() => setTimeout(() => handleRowChange(row.id, "_showDropdown", false), 150)}
+                        />
+                        {row._showDropdown && (
+                          <div className="absolute z-50 w-full bg-white border border-gray-300 rounded shadow-lg max-h-40 overflow-y-auto">
+                            {itemDescriptions
+                              .filter((desc) =>
+                                desc.toLowerCase().includes((row._search || "").toLowerCase())
+                              )
+                              .map((desc, i) => (
+                                <div
+                                  key={i}
+                                  className="px-2 py-1 hover:bg-gray-100 cursor-pointer text-xs"
+                                  onMouseDown={() => {
+                                    handleRowChange(row.id, "itemDescription", desc);
+                                    handleRowChange(row.id, "_search", "");
+                                    handleRowChange(row.id, "_showDropdown", false);
+                                  }}
+                                >
+                                  {desc}
+                                </div>
+                              ))}
+                          </div>
+                        )}
+                      </div>
+                    </td>
+                    {/* <td className="p-2 border border-gray-300 ">
                       <select
                         className="border rounded px-2 py-1 w-full bg-white focus:outline-none"
                         value={row.itemDescription}
@@ -1180,7 +1220,7 @@ export default function PrintInvoice() {
                           </option>
                         ))}
                       </select>
-                    </td>
+                    </td> */}
                     <td className="p-2 border border-gray-300 ">
                       <input
                         className="border rounded px-2 py-1 w-20 bg-white text-center focus:outline-none"

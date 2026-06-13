@@ -1032,7 +1032,7 @@ export default function ViewProduct() {
                     View By
                   </label>
                   <div className="flex gap-2">
-                    {["All", "Sold", "Unsold", "Deleted"].map((opt) => (
+                    {["All", "Sold", "Purchased"].map((opt) => (
                       <button
                         key={opt}
                         onClick={() => setFilters({ ...filters, viewBy: opt })}
