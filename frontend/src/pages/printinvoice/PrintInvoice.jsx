@@ -586,6 +586,44 @@ export default function PrintInvoice() {
   };
   const handleGenerateInvoice = async (rows, invoice_date) => {
     setGeneralInvoiceMode(true);
+    if (!customerData.customerName.trim())
+      return showNotification("error", "Error", "Customer Name is required!");
+    if (!customerData.phone1.trim() || customerData.phone1.length < 10)
+      return showNotification(
+        "error",
+        "Error",
+        "Valid Phone Number is required!",
+      );
+    if (!customerData.birthday)
+      return showNotification("error", "Error", "Birthday is required!");
+    if (!customerData.vpo.trim())
+      return showNotification("error", "Error", "VPO is required!");
+    if (!customerData.pinCode.trim())
+      return showNotification("error", "Error", "PIN Code is required!");
+    if (!customerData.state.trim())
+      return showNotification("error", "Error", "State is required!");
+    if (!customerData.district.trim())
+      return showNotification("error", "Error", "District is required!");
+    const stoneKeywords = [
+      "STONES",
+      "DIAMOND",
+      "SOLITAIRE",
+      "MINNA",
+      "MOTI",
+      "COLOR STONE",
+      "COLOURING",
+    ];
+    for (const row of rows) {
+      const desc = (row.itemDescription || "").toUpperCase().trim();
+      const isStone = stoneKeywords.some((keyword) => desc.includes(keyword));
+      if (isStone && (!row.rate || Number(row.rate) === 0)) {
+        return showNotification(
+          "error",
+          "Error",
+          `Rate required for: ${row.itemDescription}`,
+        );
+      }
+    }
     try {
       const result = await generalInvoice({ rows, invoice_date });
       const blob = await pdf(

@@ -1,3 +1,4 @@
+
 const printInvoiceService = require("../services/printInvoiceService");
 
 exports.customerDetail = async (req, res) => {
@@ -48,7 +49,7 @@ exports.getProductByItemCode = async (req, res) => {
   try {
     const { itemCode } = req.query;
     const result = await printInvoiceService.getProductByItemCode(itemCode);
-    
+
     if (!result) {
       return res.status(404).json({ message: "This product is deleted or sold." });
     }

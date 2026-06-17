@@ -106,6 +106,68 @@ exports.getProductByItemCode = async (itemCode) => {
     }));
 };
 
+// exports.saveItemDetail = async (rows) => {
+//   console.log("RECEIVED ROWS:", JSON.stringify(rows, null, 2));
+//   console.log("ROWS COUNT:", rows.length);
+//   const lastItem = await Pool.query(
+//     "SELECT group_code FROM itemdetail ORDER BY item_id DESC LIMIT 1",
+//   );
+//   const lastGroupCode =
+//     lastItem.rows.length > 0 ? lastItem.rows[0].group_code : 0;
+//   let groupCode = lastGroupCode;
+
+//   const groups = [];
+//   let currentGroup = [];
+//   const allGroupCode = [];
+//   rows.forEach((row) => {
+//     if (row.itemCode) {
+//       if (currentGroup.length > 0) groups.push(currentGroup);
+//       currentGroup = [row];
+//     } else {
+//       currentGroup.push(row);
+//     }
+//   });
+//   if (currentGroup.length > 0) groups.push(currentGroup);
+
+//   for (const group of groups) {
+//     groupCode += 1;
+//     allGroupCode.push(groupCode);
+//     const itemCode = group[0].itemCode;
+//     if (itemCode) {
+//       const today = new Date().toISOString().split("T")[0];
+//       await Pool.query(
+//         `UPDATE productdetail SET is_sold = true, sale_date = $1 WHERE item_code = $2`,
+//         [today, itemCode],
+//       );
+//     }
+
+//     for (let i = 0; i < group.length; i++) {
+//       const row = group[i];
+//       await Pool.query(
+//         `INSERT INTO itemdetail 
+//                     (item_description, code, group_code, hsn_code, quantity, unit, rate, unit_price, making_charges)
+//                  VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9) RETURNING *`,
+//         [
+//           row.itemDescription,
+//           i === 0
+//             ? row.itemCode
+//               ? String(groupCode)
+//               : `Manual_Item_${crypto.randomUUID()}`
+//             : crypto.randomUUID(),
+//           groupCode,
+//           row.hsnCode,
+//           row.quantity,
+//           row.unit,
+//           row.rate || null,
+//           row.unitPrice,
+//           row.makingCharges || null,
+//         ],
+//       );
+//     }
+//   }
+
+//   return { message: "Items saved successfully", groupCode, allGroupCode };
+// };
 exports.saveItemDetail = async (rows) => {
   console.log("RECEIVED ROWS:", JSON.stringify(rows, null, 2));
   console.log("ROWS COUNT:", rows.length);
@@ -145,13 +207,13 @@ exports.saveItemDetail = async (rows) => {
       const row = group[i];
       await Pool.query(
         `INSERT INTO itemdetail 
-                    (item_description, code, group_code, hsn_code, quantity, unit, rate, unit_price, making_charges)
-                 VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9) RETURNING *`,
+          (item_description, code, group_code, hsn_code, quantity, unit, rate, unit_price, making_charges)
+         VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9) RETURNING *`,
         [
           row.itemDescription,
           i === 0
             ? row.itemCode
-              ? String(groupCode)
+              ? String(row.itemCode)           // ✅ store original itemCode, NOT groupCode
               : `Manual_Item_${crypto.randomUUID()}`
             : crypto.randomUUID(),
           groupCode,
@@ -168,7 +230,6 @@ exports.saveItemDetail = async (rows) => {
 
   return { message: "Items saved successfully", groupCode, allGroupCode };
 };
-
 exports.getFinancialYear = (date = new Date()) => {
   const month = date.getMonth();
   const year = date.getFullYear();
@@ -240,7 +301,7 @@ exports.saveInvoice = async ({ customer_id, group_code, invoice_date }) => {
     //   [group_code],
     // );
     const itemsResult = await client.query(
-  `SELECT
+      `SELECT
     i.item_description, i.code, i.group_code, i.hsn_code, i.quantity, 
     i.unit, i.rate, i.unit_price, i.making_charges,
     p.item_code as actual_item_code
@@ -248,8 +309,8 @@ exports.saveInvoice = async ({ customer_id, group_code, invoice_date }) => {
    LEFT JOIN productdetail p ON p.item_code::text = i.code
    WHERE i.group_code = ANY($1::int[])
    ORDER BY i.item_id ASC`,
-  [group_code],
-);
+      [group_code],
+    );
     if (itemsResult.rows.length === 0) {
       throw new Error("Items Not Found");
     }
@@ -336,7 +397,7 @@ exports.getInvoiceByNumberAndFY = async (invoice_number, financial_year) => {
   });
 
   const result = await Pool.query(
-    `SELECT invoice_id, customer, items, invoice_number, invoice_date, 
+    `SELECT invoice_id, customer, items, invoice_number,  (invoice_date + INTERVAL '5 hours 30 minutes')::date AS invoice_date, 
             financial_year, total_amount,
             invoice_number
      FROM printinvoice
@@ -351,7 +412,6 @@ exports.getInvoiceByNumberAndFY = async (invoice_number, financial_year) => {
 };
 
 exports.updateInvoice = async (invoice_number, data) => {
-  // 1. Purana invoice fetch karo
   const oldResult = await Pool.query(
     `SELECT items FROM printinvoice WHERE invoice_number = $1`,
     [Number(invoice_number)],
@@ -361,7 +421,6 @@ exports.updateInvoice = async (invoice_number, data) => {
   const oldItems = oldResult.rows[0].items || [];
   const newItems = data.items || [];
 
-  // 2. Valid item codes filter karo (numeric = real product codes)
   const getValidCodes = (items) =>
     items
       .map((i) => i.item_code || i.code)
@@ -380,9 +439,8 @@ exports.updateInvoice = async (invoice_number, data) => {
   console.log("Old codes:", oldItemCodes);
   console.log("New codes:", newItemCodes);
 
-  // 3. Removed items → is_sold = false
   const removedCodes = oldItemCodes.filter((c) => !newItemCodes.includes(c));
-  // 4. Added items → is_sold = true
+
   const addedCodes = newItemCodes.filter((c) => !oldItemCodes.includes(c));
 
   console.log("Removed:", removedCodes);
@@ -403,7 +461,15 @@ exports.updateInvoice = async (invoice_number, data) => {
     );
   }
   console.log("Updating invoice_number:", Number(invoice_number));
-  // 5. Invoice update
+  const formatDate = (dateStr) => {
+    if (!dateStr) return null;
+    if (/^\d{4}-\d{2}-\d{2}$/.test(dateStr)) return dateStr;
+    if (/^\d{2}\/\d{2}\/\d{4}$/.test(dateStr)) {
+      const [day, month, year] = dateStr.split("/");
+      return `${year}-${month}-${day}`;
+    }
+    return dateStr;
+  };
   const result = await Pool.query(
     `UPDATE printinvoice
      SET customer = $1, items = $2, invoice_date = $3
@@ -412,7 +478,7 @@ exports.updateInvoice = async (invoice_number, data) => {
     [
       JSON.stringify(data.customer),
       JSON.stringify(data.items),
-      data.invoice_date,
+      formatDate(data.invoice_date),
       Number(invoice_number),
     ],
   );
@@ -422,68 +488,6 @@ exports.updateInvoice = async (invoice_number, data) => {
   return result.rows[0];
 };
 
-// exports.deleteInvoice = async (invoice_id) => {
-//   const result = await Pool.query(
-//     `DELETE FROM printinvoice WHERE invoice_id = $1 RETURNING *`,
-//     [Number(invoice_id)],
-//   );
-//   if (result.rows.length === 0) throw new Error("Invoice not found");
-//   return result.rows[0];
-// };
-// exports.deleteInvoice = async (invoice_id) => {
-//   try {
-//     const invoiceResult = await Pool.query(
-//       `SELECT invoice_number, financial_year, items FROM printinvoice WHERE invoice_id = $1`,
-//       [Number(invoice_id)],
-//     );
-
-//     if (invoiceResult.rows.length === 0) throw new Error("Invoice not found");
-
-//     const { invoice_number, financial_year, items } = invoiceResult.rows[0];
-
-//     const latestResult = await Pool.query(
-//       `SELECT MAX(invoice_number) AS latest FROM printinvoice WHERE financial_year = $1`,
-//       [financial_year],
-//     );
-
-//     if (Number(invoice_number) !== Number(latestResult.rows[0].latest)) {
-//       throw new Error("Only the latest invoice can be deleted");
-//     }
-
-//     const itemCodes = items
-//       .filter((item) => {
-//         const code = item.item_code || item.code;
-//         return (
-//           code &&
-//           String(code).trim() !== "" &&
-//           !String(code).startsWith("Manual_Item_") &&
-//           !isNaN(Number(code))
-//         );
-//       })
-//       .map((item) => Number(item.item_code || item.code));
-
-//     console.log("Resetting is_sold for item codes:", itemCodes);
-
-//     if (itemCodes.length > 0) {
-//       await Pool.query(
-//         `UPDATE productdetail 
-//      SET is_sold = false, sale_date = null 
-//      WHERE item_code = ANY($1::integer[])`,
-//         [itemCodes],
-//       );
-//     }
-
-//     const result = await Pool.query(
-//       `DELETE FROM printinvoice WHERE invoice_id = $1 RETURNING *`,
-//       [Number(invoice_id)],
-//     );
-
-//     return result.rows[0];
-//   } catch (err) {
-//     console.error("deleteInvoice error:", err.message);
-//     throw err;
-//   }
-// };
 exports.deleteInvoice = async (invoice_id) => {
   try {
     const invoiceResult = await Pool.query(
@@ -493,14 +497,13 @@ exports.deleteInvoice = async (invoice_id) => {
 
     if (invoiceResult.rows.length === 0) throw new Error("Invoice not found");
 
-    const { invoice_number, financial_year, items } = invoiceResult.rows[0];
+    const { items } = invoiceResult.rows[0];
 
     const latestResult = await Pool.query(
-      `SELECT MAX(invoice_number) AS latest FROM printinvoice WHERE financial_year = $1`,
-      [financial_year],
+      `SELECT MAX(invoice_id) AS latest FROM printinvoice`,
     );
 
-    if (Number(invoice_number) !== Number(latestResult.rows[0].latest)) {
+    if (Number(invoice_id) !== Number(latestResult.rows[0].latest)) {
       throw new Error("Only the latest invoice can be deleted");
     }
 
@@ -522,7 +525,7 @@ exports.deleteInvoice = async (invoice_id) => {
       await Pool.query(
         `UPDATE productdetail 
          SET is_sold = false, sale_date = null 
-         WHERE item_code = ANY($1::integer[])`,
+         WHERE item_code = ANY($1::integer[])`, 
         [itemCodes],
       );
     }

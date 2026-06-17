@@ -415,13 +415,13 @@ export default function GeneralInvoice({
               "MOTI",
               "COLOR STONE",
             ];
-            const desc = (row.itemDescription || "").toUpperCase();
-            const isMain = !stoneKeywords.some((k) => desc.includes(k));
+            const desc = (row.itemDescription || "").toUpperCase().trim();
+            const isMain = !stoneKeywords.includes(desc);
 
             const sno = isMain
               ? computed.slice(0, idx + 1).filter((r) => {
-                const d = (r.itemDescription || "").toUpperCase();
-                return !stoneKeywords.some((k) => d.includes(k));
+                const d = (r.itemDescription || "").toUpperCase().trim();
+                return !stoneKeywords.includes(d);
               }).length
               : 0;
             return (

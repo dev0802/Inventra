@@ -1,4 +1,3 @@
-// InvoicePdf.jsx — FULL UPDATED FILE
 import {
   Document,
   Page,
@@ -278,29 +277,23 @@ export default function InvoicePdf({
     let lineTotal = 0;
 
     if (isGold && isGoldRate) {
-      // Gold item: qty * rate + making%
       makingAmt =
         makingPct !== 0 ? Math.round((baseAmt * makingPct) / 100) : null;
       lineTotal = baseAmt + (makingAmt || 0);
     } else if (isDiamond && isGoldRate) {
-      // Diamond WITH making charges (unit_price=true)
       makingAmt =
         makingPct !== 0 ? Math.round((baseAmt * makingPct) / 100) : null;
       lineTotal = baseAmt + (makingAmt || 0);
     } else if (isDiamond && !isGoldRate) {
-      // Solitaire / fixed price diamond (unit_price=false)
       lineTotal = rate;
       makingAmt = null;
     } else if (isGold && !isGoldRate) {
-      // Gold item with fixed price (not rate-based)
       lineTotal = rate;
       makingAmt = null;
     } else {
-      // Fallback
       lineTotal = rate;
       makingAmt = null;
     }
-
     return { ...row, baseAmt, makingAmt, lineTotal };
   });
 
@@ -317,9 +310,6 @@ export default function InvoicePdf({
     .reduce((s, r) => s + (parseFloat(r.quantity) || 0), 0);
 
   const placeOfSupply = "Punjab (03)";
-
-  // ── S No counter (sirf main items) ──
-  let snoCounter = 0;
 
   return (
     <Document>
@@ -409,19 +399,29 @@ export default function InvoicePdf({
           </View>
 
           {computed.map((row, idx) => {
-            const isMain =
-              !isNaN(Number(row.code)) &&
-              row.code !== "" &&
-              row.code !== null &&
-              row.code !== undefined;
+            const stoneKeywords = [
+              "STONES",
+              "DIAMOND",
+              "SOLITAIRE",
+              "MINNA",
+              "MOTI",
+              "COLOR STONE",
+            ];
+            const desc = (row.itemDescription || "").toUpperCase().trim();
+            const isMain = !stoneKeywords.includes(desc);
 
-            if (isMain) snoCounter++;
+            const sno = isMain
+              ? computed.slice(0, idx + 1).filter((r) => {
+                const d = (r.itemDescription || "").toUpperCase().trim();
+                return !stoneKeywords.includes(d);
+              }).length
+              : 0;
             return (
               <View
                 key={row.id || idx}
                 style={idx === computed.length - 1 ? S.trowLast : S.trow}
               >
-                <Text style={[S.td, S.cSno]}>{isMain ? snoCounter : ""}</Text>
+                <Text style={[S.td, S.cSno]}>{isMain ? sno : ""}</Text>
                 <Text style={[S.td, S.cDesc, S.bl]}>{row.itemDescription}</Text>
                 <Text style={[S.td, S.cHsn, S.bl]}>{row.hsnCode}</Text>
                 <Text style={[S.td, S.cQty, S.bl]}>

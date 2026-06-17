@@ -316,7 +316,7 @@ export default function ManualInvoice({
     .reduce((s, r) => s + (parseFloat(r.quantity) || 0), 0);
 
   const placeOfSupply = "Punjab (03)";
-let snoCounter = 0;
+  // let snoCounter = 0;
   return (
     <Document>
       <Page size="A4" style={S.page}>
@@ -404,38 +404,54 @@ let snoCounter = 0;
             <Text style={[S.th, S.cAmt, S.bl]}>Amount (Rs)</Text>
           </View>
 
-          
 
-{computed.map((row, idx) => {
-  const stoneKeywords = ["STONES", "DIAMOND", "SOLITAIRE", "MINNA", "MOTI", "COLOR STONE", "COLOURING"];
-  const desc = (row.itemDescription || "").toUpperCase();
-  const isStone = stoneKeywords.some((k) => desc.includes(k));
-  const isMain = !isStone && !!(row.makingCharges && String(row.makingCharges).trim() !== "");
-  if (isMain) snoCounter++;
 
-  return (
-    <View key={row.id || idx} style={idx === computed.length - 1 ? S.trowLast : S.trow}>
-      <Text style={[S.td, S.cSno]}>{isMain ? snoCounter : ""}</Text>
-      <Text style={[S.td, S.cDesc, S.bl]}>{row.itemDescription}</Text>
-      <Text style={[S.td, S.cHsn, S.bl]}>{row.hsnCode}</Text>
-      <Text style={[S.td, S.cQty, S.bl]}>
-        {row.unit === "Ct."
-          ? `${parseFloat(row.quantity).toFixed(2)} ${row.unit}`
-          : `${parseFloat(row.quantity).toFixed(3)} ${row.unit}`}
-      </Text>
-      <Text style={[S.td, S.cRate, S.bl]}>{row.rate}</Text>
-      <Text style={[S.td, S.cMakePct, S.bl]}>
-        {isMain ? row.makingCharges || "" : ""}
-      </Text>
-      <Text style={[S.td, S.cMakeAmt, S.bl]}>
-        {isMain ? row.makingAmt || "" : ""}
-      </Text>
-      <Text style={[S.td, S.cAmt, S.bl]}>
-        {Math.round(row.lineTotal)}
-      </Text>
-    </View>
-  );
-})}
+          {computed.map((row, idx) => {
+            const stoneKeywords = [
+              "STONES",
+              "DIAMOND",
+              "SOLITAIRE",
+              "MINNA",
+              "MOTI",
+              "COLOR STONE",
+            ];
+            const desc = (row.itemDescription || "").toUpperCase().trim();
+            const isMain = !stoneKeywords.includes(desc);
+
+            const sno = isMain
+              ? computed.slice(0, idx + 1).filter((r) => {
+                const d = (r.itemDescription || "").toUpperCase().trim();
+                return !stoneKeywords.includes(d);
+              }).length
+              : 0;
+
+            return (
+              <View key={row.id || idx} style={idx === computed.length - 1 ? S.trowLast : S.trow}>
+                <Text style={[S.td, S.cSno]}>{isMain ? sno : ""}</Text>
+                <Text style={[S.td, S.cDesc, S.bl]}>{row.itemDescription}</Text>
+                <Text style={[S.td, S.cHsn, S.bl]}>{row.hsnCode}</Text>
+                <Text style={[S.td, S.cQty, S.bl]}>
+                  {row.unit === "Ct."
+                    ? `${parseFloat(row.quantity).toFixed(2)} ${row.unit}`
+                    : `${parseFloat(row.quantity).toFixed(3)} ${row.unit}`}
+                </Text>
+                <Text style={[S.td, S.cRate, S.bl]}>{row.rate}</Text>
+                <Text style={[S.td, S.cMakePct, S.bl]}>
+                  {!row.unitPrice && row.unit === "Ct."
+                    ? ""
+                    : row.makingCharges || ""}
+                </Text>
+                <Text style={[S.td, S.cMakeAmt, S.bl]}>
+                  {!row.unitPrice && row.unit === "Ct."
+                    ? ""
+                    : row.makingCharges || ""}
+                </Text>
+                <Text style={[S.td, S.cAmt, S.bl]}>
+                  {Math.round(row.lineTotal)}
+                </Text>
+              </View>
+            );
+          })}
         </View>
 
         {/* ── TOTALS ── */}

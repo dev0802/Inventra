@@ -511,7 +511,7 @@ export default function Report() {
                         {parseFloat(item.rate).toFixed(2)}
                       </td>
                       <td className="p-3 border border-gray-400 text-center">
-                        {parseFloat(item.single_amount).toFixed(3)}
+                        {parseFloat(item.single_amount).toFixed(2)}
                       </td>
                     </tr>
                   ))}
@@ -527,7 +527,7 @@ export default function Report() {
                     <td className="p-3 border border-gray-400 text-center" />
                     <td className="p-3 border border-gray-400 text-center" />
                     <td className="p-3 border border-gray-400 text-center">
-                      {parseFloat(totalSales.amount).toFixed(3)}
+                      {parseFloat(totalSales.amount).toFixed(2)}
                     </td>
                   </tr>
                 </tbody>

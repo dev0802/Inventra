@@ -131,7 +131,7 @@ export default function ViewProduct() {
         </body>
       </html>
     `);
-    printWindow.document.close();
+      printWindow.document.close();
       const checkClosed = setInterval(() => {
         if (printWindow.closed) {
           clearInterval(checkClosed);
@@ -265,7 +265,11 @@ export default function ViewProduct() {
 
   const handleDataUpdate = async () => {
     try {
-      await updateProductDetails(updateData);
+      const dataToSend = {
+        ...updateData,
+        saleDate: updateData.isSold ? updateData.saleDate : null,
+      };
+      await updateProductDetails(dataToSend);
       const updatedProducts = await filterProducts(filters);
       setLoadProducts(updatedProducts);
       setUpdatePopup(false);
@@ -483,10 +487,10 @@ export default function ViewProduct() {
                       {product.moti_weight}
                     </td>
                     <td className="border border-gray-300 px-3 py-2 text-gray-800">
-                      {product.diamond_weight}
+                      {parseFloat(product.diamond_weight).toFixed(2)}
                     </td>
                     <td className="border border-gray-300 px-3 py-2 text-gray-800">
-                      {product.solitaire_weight}
+                      {parseFloat(product.solitaire_weight).toFixed(2)}
                     </td>
                     <td className="border border-gray-300 px-3 py-2 text-gray-800">
                       {product.color_stone}
@@ -623,11 +627,6 @@ export default function ViewProduct() {
                 </button>
               </div>
 
-              {/*
-                labels-print-area — yeh div ka innerHTML print window mein jaata hai.
-                Har JewelleryLabel component yahan render hoga.
-                Barcode SVG already draw ho chuka hoga React ke through.
-              */}
               <div
                 id="labels-print-area"
                 className="flex flex-wrap gap-3 p-3 bg-gray-50 rounded-xl"
@@ -892,7 +891,7 @@ export default function ViewProduct() {
                       </button>
                       <button
                         onClick={() =>
-                          setUpdateData({ ...updateData, isSold: false })
+                          setUpdateData({ ...updateData, isSold: false, saleDate: "" })
                         }
                         className={`text-md px-3 py-1 rounded border transition ${!updateData.isSold ? "bg-gray-700 text-white" : "bg-white text-gray-500 border-gray-200"}`}
                       >

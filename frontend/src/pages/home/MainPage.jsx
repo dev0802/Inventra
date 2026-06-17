@@ -55,13 +55,7 @@ export default function MainPage({
   });
 
   const [userName, setUserName] = useState("");
-  const formatDate = (dateStr) => {
-    return new Date(dateStr).toLocaleDateString("en-IN", {
-      day: "2-digit",
-      month: "2-digit",
-      year: "numeric",
-    });
-  };
+
   useEffect(() => {
     const checkSession = async () => {
       try {
@@ -239,15 +233,23 @@ export default function MainPage({
       }));
     }
   };
-
+  const getISTDate = (dateStr) => {
+    if (!dateStr) return "";
+    const date = new Date(dateStr);
+    const istOffset = 5.5 * 60 * 60 * 1000;
+    return new Date(date.getTime() + istOffset).toISOString().split("T")[0];
+  };
   const [showUpdateInvoice, setShowUpdateInvoice] = useState(false);
 
   const handlePrintDuplicate = async () => {
+    const rawDate = getISTDate(foundInvoice.invoice_date) || 
+                    getISTDate(foundInvoice.invoice_date);
+    console.log("date duplicate:", rawDate);
     try {
       await updateInvoice(foundInvoice.invoice_id, {
         customer: foundInvoice.customer,
         items: foundInvoice.items,
-        invoice_date: formatDate(foundInvoice.invoice_date),
+        invoice_date: rawDate,
       });
 
       const blob = await pdf(
@@ -257,7 +259,7 @@ export default function MainPage({
           invoiceNumber={
             foundInvoice.display_number || foundInvoice.invoice_number
           }
-          invoiceDate={formatDate(foundInvoice.invoice_date)}
+          invoiceDate={getISTDate(rawDate)}
           cgstRate={1.5}
           sgstRate={1.5}
         />,
@@ -435,7 +437,7 @@ export default function MainPage({
   };
 
   const handleSaveInvoice = async () => {
-    console.log("invoice_number:", foundInvoice.invoice_number); // ← check
+    console.log("invoice_number:", foundInvoice.invoice_number);
     console.log("invoice_id:", foundInvoice.invoice_id);
     try {
       await updateInvoice(foundInvoice.invoice_number, {
@@ -467,6 +469,7 @@ export default function MainPage({
       showNotification("success", "Success", "Invoice updated & printed!");
       setShowUpdateInvoice(false);
       setFoundInvoice(null);
+      console.log("raw invoice_date:", foundInvoice.invoice_date);
     } catch (err) {
       console.error("SAVE ERROR:", err);
       showNotification("error", "Error", "Failed to update invoice.");
@@ -681,6 +684,25 @@ export default function MainPage({
                 >
                   Reset
                 </button>
+                <button
+                  onClick={() => setShowUpdateInvoice(false)}
+                  className="text-gray-400 hover:text-gray-600"
+                >
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    className="w-5 h-5"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    stroke="currentColor"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M6 18L18 6M6 6l12 12"
+                    />
+                  </svg>
+                </button>
               </div>
 
               {foundInvoice ? (
@@ -725,7 +747,7 @@ export default function MainPage({
                       <div className="relative">
                         <input
                           type="date"
-                          value={foundInvoice.invoice_date?.split("T")[0] || ""}
+                          value={getISTDate(foundInvoice.invoice_date)}
                           onChange={(e) =>
                             setFoundInvoice((p) => ({
                               ...p,

@@ -148,7 +148,7 @@ export default function AddProduct() {
     const { name, value } = e.target;
     initialProductData[name] = value;
 
-    if(name === "itemDescription") {
+    if (name === "itemDescription") {
       setSelectItemDescription(value);
     }
   };
@@ -168,7 +168,7 @@ export default function AddProduct() {
       const parts = value.split(".");
       value = parts[0] + "." + parts[1].slice(0, decimals);
     }
-
+    e.target.value = value;
     initialProductData[e.target.name] = value;
     const calculationNetWeight =
       (parseFloat(initialProductData.grossWeight) || 0) -
@@ -467,7 +467,7 @@ export default function AddProduct() {
               Gross Weight (Gms.)
             </label>
             <input
-            type="number"
+              type="number"
               name="grossWeight"
               // value={initialProductData.grossWeight}
               onChange={handleNumericChange}
@@ -481,7 +481,7 @@ export default function AddProduct() {
               Stone Weight (Gms.)
             </label>
             <input
-            type="number"
+              type="number"
               name="stoneWeight"
               // value={initialProductData.stoneWeight}
               onChange={handleNumericChange}
@@ -523,7 +523,7 @@ export default function AddProduct() {
               Solitaire Weight (Ct.)
             </label>
             <input
-              type="number" 
+              type="number"
               name="solitaireWeight"
               // value={initialProductData.solitaireWeight}
               onChange={handleNumericChange}

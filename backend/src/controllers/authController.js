@@ -12,6 +12,7 @@ exports.signUp = async (req, res) => {
     const { name, phoneNumber, userPassword } = req.body;
     try {
         const user = await authService.signUp(name, phoneNumber, userPassword);
+
         if (user.message === "Phone Number already exists") {
             return res.status(409).json(user);// conflict
         }
@@ -42,6 +43,7 @@ exports.logIn = async (req, res) => {
 // Password reset controller
 exports.resetPassword = async (req, res) => {
     const { phoneNumber, newUserPassword } = req.body;
+
     try {
         const user = await authService.resetPassword(phoneNumber, newUserPassword);
 

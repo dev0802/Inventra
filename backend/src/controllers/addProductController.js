@@ -20,9 +20,9 @@ exports.addItemDescription = async (req, res) => {
     try {
         const result = await addProductService.itemDescriptions(itemDescription);
         if (result) {
-            return res.status(201).json({ 
+            return res.status(201).json({
                 message: "Item description added successfully",
-                itemDescription: result.item_description 
+                itemDescription: result.item_description
             });
         } else {
             return res.status(400).json({ error: 'Failed to add item description' });
@@ -36,7 +36,7 @@ exports.addItemDescription = async (req, res) => {
 exports.getItemDescriptions = async (req, res) => {
     try {
         const result = await addProductService.getItemDescriptions();
-        return res.status(200).json({ 
+        return res.status(200).json({
             itemDescriptions: result.map(r => r.item_description)
         });
     } catch (error) {

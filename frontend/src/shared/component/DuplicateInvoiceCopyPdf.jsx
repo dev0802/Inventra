@@ -146,6 +146,7 @@ export default function DuplicateInvoicePdf({
   invoiceDate,
   cgstRate = 1.5,
   sgstRate = 1.5,
+  goldInvoice,
 }) {
   const name =
     customerData.customer_name || customerData.customerName || customerData.name || "";
@@ -161,6 +162,7 @@ export default function DuplicateInvoicePdf({
   const email = customerData.email || "";
   const custGstin = customerData.customer_gstin || customerData.customerGstin || "";
 
+  // ── Same formatDate logic as InvoicePdf ──
   const formatDate = (d) => {
     if (!d) return "";
     if (typeof d === "string" && /^\d{4}-\d{2}-\d{2}$/.test(d)) {
@@ -180,6 +182,7 @@ export default function DuplicateInvoicePdf({
     });
   };
 
+  // ── Same normalizedRows logic as InvoicePdf ──
   const normalizedRows = (rows || []).map((row) => ({
     ...row,
     itemDescription: row.item_description || row.itemDescription || "",
@@ -189,8 +192,10 @@ export default function DuplicateInvoicePdf({
     rate:            row.rate            || "",
     makingCharges:   row.making_charges  || row.makingCharges   || "",
     is_main_item:    row.is_main_item,
+    unitPrice:       row.unitPrice ?? row.unit_price,
   }));
 
+  // ── Same computed logic as InvoicePdf ──
   const computed = normalizedRows.map((row) => {
     const qty = parseFloat(row.quantity) || 0;
     const rate = parseFloat(row.rate) || 0;
@@ -205,12 +210,10 @@ export default function DuplicateInvoicePdf({
     let lineTotal = 0;
 
     if (isGold && isGoldRate) {
-      makingAmt =
-        makingPct !== 0 ? Math.round((baseAmt * makingPct) / 100) : null;
+      makingAmt = makingPct !== 0 ? Math.round((baseAmt * makingPct) / 100) : null;
       lineTotal = baseAmt + (makingAmt || 0);
     } else if (isDiamond && isGoldRate) {
-      makingAmt =
-        makingPct !== 0 ? Math.round((baseAmt * makingPct) / 100) : null;
+      makingAmt = makingPct !== 0 ? Math.round((baseAmt * makingPct) / 100) : null;
       lineTotal = baseAmt + (makingAmt || 0);
     } else if (isDiamond && !isGoldRate) {
       lineTotal = rate;
@@ -231,12 +234,15 @@ export default function DuplicateInvoicePdf({
   const sgst  = Math.round((subtotal * sgstRate) / 100);
   const grand = subtotal + cgst + sgst;
 
+  // ── Same totalGoldWt logic as InvoicePdf ──
   const totalGoldWt = normalizedRows
-    .filter((r) => r.unit === "Gms." && r.is_main_item !== false && r.unit_price !== false)
+    .filter((r) => r.unit === "Gms." && r.is_main_item !== false && r.unitPrice !== false)
     .reduce((s, r) => s + (parseFloat(r.quantity) || 0), 0);
 
   const placeOfSupply = "Punjab (03)";
-  let snoCounter = 0;
+
+  // ── Same stoneKeywords S-No logic as InvoicePdf ──
+  const stoneKeywords = ["STONES", "DIAMOND", "SOLITAIRE", "MINNA", "MOTI", "COLOR STONE"];
 
   return (
     <Document>
@@ -260,11 +266,11 @@ export default function DuplicateInvoicePdf({
         <View style={S.metaRow}>
           <View>
             <Text style={S.billLabel}>Billed To</Text>
-            {name    ? <Text style={S.billValue}>{name}</Text>    : null}
-            {address ? <Text style={S.billValue}>{address}</Text> : null}
-            {phone   ? <Text style={S.billValue}>{phone}</Text>   : null}
-            {email   ? <Text style={S.billValue}>{email}</Text>   : null}
-            {custGstin ? <Text style={S.billValue}>GSTIN: {custGstin}</Text> : null}
+            {name      ? <Text style={S.billValue}>{name}</Text>            : null}
+            {address   ? <Text style={S.billValue}>{address}</Text>         : null}
+            {phone     ? <Text style={S.billValue}>{phone}</Text>           : null}
+            {email     ? <Text style={S.billValue}>{email}</Text>           : null}
+            {custGstin ? <Text style={S.billValue}>GSTIN: {custGstin}</Text>: null}
           </View>
           <View style={S.metaRight}>
             <View style={S.metaLine}>
@@ -296,31 +302,55 @@ export default function DuplicateInvoicePdf({
           </View>
 
           {computed.map((row, idx) => {
-            const isMain = row.unit_price === true || row.unit_price === "true";
-            if (isMain) snoCounter++;
+            const desc = (row.itemDescription || "").toUpperCase().trim();
+            const isMain = !stoneKeywords.includes(desc);
+
+            // Same S-No logic as InvoicePdf
+            const sno = isMain
+              ? computed.slice(0, idx + 1).filter((r) => {
+                  const d = (r.itemDescription || "").toUpperCase().trim();
+                  return !stoneKeywords.includes(d);
+                }).length
+              : 0;
+
             return (
               <View key={idx} style={idx === computed.length - 1 ? S.trowLast : S.trow}>
-                <Text style={[S.td, S.cSno]}>{isMain ? snoCounter : ""}</Text>
+                <Text style={[S.td, S.cSno]}>{isMain ? sno : ""}</Text>
                 <Text style={[S.td, S.cDesc]}>{row.itemDescription}</Text>
                 <Text style={[S.td, S.cHsn]}>{row.hsnCode}</Text>
-                <Text style={[S.td, S.cQty]}>{row.quantity} {row.unit}</Text>
+                {/* Same quantity formatting as InvoicePdf */}
+                <Text style={[S.td, S.cQty]}>
+                  {row.unit === "Ct."
+                    ? `${parseFloat(row.quantity).toFixed(2)} ${row.unit}`
+                    : `${parseFloat(row.quantity).toFixed(3)} ${row.unit}`}
+                </Text>
                 <Text style={[S.td, S.cRate]}>{row.rate}</Text>
-                <Text style={[S.td, S.cMakePct]}>{row.unit === "Ct." ? "" : row.makingCharges || ""}</Text>
-                <Text style={[S.td, S.cMakeAmt]}>{row.unit === "Ct." ? "" : row.makingAmt || ""}</Text>
+                {/* Same making charges display logic as InvoicePdf */}
+                <Text style={[S.td, S.cMakePct]}>
+                  {!row.unitPrice && row.unit === "Ct." ? "" : row.makingCharges || ""}
+                </Text>
+                <Text style={[S.td, S.cMakeAmt]}>
+                  {!row.unitPrice && row.unit === "Ct." ? "" : row.makingAmt || ""}
+                </Text>
                 <Text style={[S.td, S.cAmt]}>{Math.round(row.lineTotal)}</Text>
               </View>
             );
           })}
         </View>
 
-        {/* ── TOTALS ── */}
+        {/* ── TOTALS — same layout as InvoicePdf ── */}
         <View style={S.totalsWrap}>
-          <View>
-            <Text>
-              <Text style={S.goldWtBold}>Total Gold Wt</Text>
-              {"    "}{totalGoldWt.toFixed(3)} Gms.
+          <View style={{ flexDirection: "row", marginTop: 4 }}>
+            <Text style={{ width: 22 }}></Text>
+            <Text style={{ width: 211, paddingHorizontal: 4 }}></Text>
+            <Text style={{ width: 80, fontFamily: "Helvetica-Bold", fontSize: 8.5, textAlign: "right" }}>
+              {goldInvoice === true ? `Total Gold Wt` : `Total Wt`}
+            </Text>
+            <Text style={{ width: 58, paddingHorizontal: 3, fontSize: 8.5, textAlign: "center" }}>
+              {totalGoldWt.toFixed(3)} Gms.
             </Text>
           </View>
+
           <View style={S.taxBlock}>
             {cgstRate > 0 && (
               <View style={S.taxLine}>
