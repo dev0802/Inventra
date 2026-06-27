@@ -81,7 +81,7 @@ exports.getItemDescriptions = async (req, res) => {
   logger.info(`Fetching all Item Descriptions`);
   try {
     const result = await addProductService.getItemDescriptions();
-    logger.info(`Fetched ${result.length} Item Descriptions`);
+    // logger.info(`Fetched ${result.length} Item Descriptions`);
     return res.status(200).json({
       itemDescriptions: result.map((r) => r.item_description),
     });

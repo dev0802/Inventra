@@ -24,20 +24,6 @@ const withTransaction = async (callback) => {
   }
 };
 
-/* =====================================================================
-   CONCURRENCY CONTROL HELPERS
-   ---------------------------------------------------------------------
-   Teen reusable patterns:
-     1. withAdvisoryLock  -> sequence-critical (invoice numbers)
-     2. atomicStateUpdate -> state-toggle critical (is_sold, is_deleted)
-     3. updateWithVersion -> edit-conflict critical (OCC via version col)
-   ===================================================================== */
-
-/**
- * Named lock ke andar callback chalata hai. Same lockKey wale concurrent
- * calls sequentially chalte hain — doosra commit/rollback hone tak wait
- * karta hai. Transaction-scoped hai isliye lock auto-release hota hai.
- */
 const withAdvisoryLock = async (lockKey, callback) => {
   return withTransaction(async (client) => {
     await client.query(`SELECT pg_advisory_xact_lock(hashtext($1))`, [lockKey]);
@@ -45,11 +31,6 @@ const withAdvisoryLock = async (lockKey, callback) => {
   });
 };
 
-/**
- * Check + Update ek hi atomic SQL statement mein — lost update /
- * double-action (jaise double-sell) se bachata hai.
- * rowCount 0 => condition fail, kisi aur ne already state change kar diya.
- */
 const atomicStateUpdate = async (
   table,
   idColumn,
@@ -79,10 +60,6 @@ const atomicStateUpdate = async (
   return result.rows[0];
 };
 
-/**
- * version column check karke update — Optimistic Concurrency Control.
- * Mismatch hone pe CONCURRENCY_CONFLICT throw karta hai.
- */
 const updateWithVersion = async (
   table,
   idColumn,
@@ -111,10 +88,6 @@ const updateWithVersion = async (
   }
   return result.rows[0];
 };
-
-/* =====================================================================
-   TABLE CREATION
-   ===================================================================== */
 
 const adminTable = async (client) => {
   await client.query(`
@@ -267,24 +240,13 @@ const createAllTables = async () => {
   }
 };
 
-/* =====================================================================
-   MIGRATION HELPER — agar tables already exist karte hain (production
-   mein), to upar wala CREATE TABLE IF NOT EXISTS naye columns/constraints
-   add nahi karega. Ye function existing DB ko safely patch karta hai.
-   Ek baar chala ke chhod do.
-   ===================================================================== */
-
 const migrateExistingTables = async () => {
   await withTransaction(async (client) => {
-    // productdetail mein version column add karo (agar already nahi hai)
     await client.query(`
       ALTER TABLE productdetail
       ADD COLUMN IF NOT EXISTS version INTEGER NOT NULL DEFAULT 0
     `);
 
-    // goldrate mein ek din ek hi rate ho — UNIQUE constraint
-    // (Postgres "ADD CONSTRAINT IF NOT EXISTS" support nahi karta,
-    //  isliye DO block ke andar duplicate_object error ko catch karte hain)
     await client.query(`
       DO $$
       BEGIN
@@ -294,7 +256,6 @@ const migrateExistingTables = async () => {
       END $$;
     `);
 
-    // generalinvoice number bhi unique hona chahiye
     await client.query(`
       DO $$
       BEGIN
@@ -313,7 +274,6 @@ module.exports = {
   createAllTables,
   withTransaction,
   migrateExistingTables,
-  // concurrency helpers — controllers mein yahan se import karo
   withAdvisoryLock,
   atomicStateUpdate,
   updateWithVersion,

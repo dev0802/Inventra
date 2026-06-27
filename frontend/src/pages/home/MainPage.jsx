@@ -242,8 +242,8 @@ export default function MainPage({
   const [showUpdateInvoice, setShowUpdateInvoice] = useState(false);
 
   const handlePrintDuplicate = async () => {
-    const rawDate = getISTDate(foundInvoice.invoice_date) || 
-                    getISTDate(foundInvoice.invoice_date);
+    const rawDate = getISTDate(foundInvoice.invoice_date) ||
+      getISTDate(foundInvoice.invoice_date);
     console.log("date duplicate:", rawDate);
     try {
       await updateInvoice(foundInvoice.invoice_id, {
@@ -638,55 +638,56 @@ export default function MainPage({
               onClick={(e) => e.stopPropagation()}
             >
               {/* ── Search Row ── */}
-              <div className="flex items-center gap-4 px-6 py-4 border-b border-gray-400 flex-wrap">
-                <label className="text-sm font-semibold text-gray-700 whitespace-nowrap">
-                  Enter Invoice Number:
-                </label>
-                <input
-                  type="number"
-                  value={updateSearch.invoiceNumber}
-                  onChange={(e) =>
-                    setUpdateSearch((p) => ({
-                      ...p,
-                      invoiceNumber: e.target.value,
-                    }))
-                  }
-                  onKeyDown={handleSearchKeyDown}
-                  className="w-24 border border-gray-500 rounded-md px-3 py-1.5 bg-gray-200 focus:outline-none focus:shadow-md text-sm"
-                />
-                <label className="text-sm font-semibold text-gray-700">
-                  Financial Year
-                </label>
-                <select
-                  value={updateSearch.financialYear}
-                  onChange={(e) =>
-                    setUpdateSearch((p) => ({
-                      ...p,
-                      financialYear: e.target.value,
-                    }))
-                  }
-                  className="border border-gray-500 rounded-md px-3 py-1.5 bg-gray-200 focus:outline-none text-sm"
-                >
-                  {fyList.map((fy) => (
-                    <option key={fy}>{fy}</option>
-                  ))}
-                </select>
-
-                <button
-                  onClick={() => {
-                    setFoundInvoice(null);
-                    setUpdateSearch({
-                      invoiceNumber: "",
-                      financialYear: getCurrentFY(),
-                    });
-                  }}
-                  className="text-white text-sm font-semibold px-5 py-1.5 rounded-full border border-white/40 bg-gradient-to-r from-gray-600 to-gray-700 hover:from-gray-700 hover:to-gray-800 transition-all"
-                >
-                  Reset
-                </button>
+              <div className="flex items-center gap-4 px-6 py-4 border-b border-gray-400 justify-between">
+                <div className="flex items-center gap-4">
+                  <label className="text-sm font-semibold text-gray-700 whitespace-nowrap">
+                    Enter Invoice Number:
+                  </label>
+                  <input
+                    type="number"
+                    value={updateSearch.invoiceNumber}
+                    onChange={(e) =>
+                      setUpdateSearch((p) => ({
+                        ...p,
+                        invoiceNumber: e.target.value,
+                      }))
+                    }
+                    onKeyDown={handleSearchKeyDown}
+                    className="w-24 border border-gray-500 rounded-md px-3 py-1.5 bg-gray-200 focus:outline-none focus:shadow-md text-sm"
+                  />
+                  <label className="text-sm font-semibold text-gray-700">
+                    Financial Year
+                  </label>
+                  <select
+                    value={updateSearch.financialYear}
+                    onChange={(e) =>
+                      setUpdateSearch((p) => ({
+                        ...p,
+                        financialYear: e.target.value,
+                      }))
+                    }
+                    className="border border-gray-500 rounded-md px-3 py-1.5 bg-gray-200 focus:outline-none text-sm"
+                  >
+                    {fyList.map((fy) => (
+                      <option key={fy}>{fy}</option>
+                    ))}
+                  </select>
+                  <button
+                    onClick={() => {
+                      setFoundInvoice(null);
+                      setUpdateSearch({
+                        invoiceNumber: "",
+                        financialYear: getCurrentFY(),
+                      });
+                    }}
+                    className="text-white text-sm font-semibold px-5 py-1.5 rounded-full border border-white/40 bg-gradient-to-r from-gray-600 to-gray-700 hover:from-gray-700 hover:to-gray-800 transition-all"
+                  >
+                    Reset
+                  </button>
+                </div>
                 <button
                   onClick={() => setShowUpdateInvoice(false)}
-                  className="text-gray-400 hover:text-gray-600"
+                  className="text-gray-500 hover:text-gray-600"
                 >
                   <svg
                     xmlns="http://www.w3.org/2000/svg"

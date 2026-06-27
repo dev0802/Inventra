@@ -65,11 +65,11 @@ exports.getAllProducts = async (req, res) => {
   try {
     const products = await viewProductService.getAllProducts();
     logger.info(
-      `All Products fetched successfully | User Id: ${req.user.userId} & User: ${req.user.userName} | Count: ${products.length}`,
+      `All Products fetched successfully | User Id: ${req.user.userId} & User: ${req.user.userName}`,
     );
     res.status(200).json(products);
   } catch (error) {
-    logger.error(`Get All Products error | User Id: ${req.user.userId} & User: ${req.user.userName} | ${error.message}`);
+    logger.error(`Get All Products error | UID: ${req.user.userId} & User: ${req.user.userName} | ${error.message}`);
     res.status(500).json({ error: "Internal Server Error" });
   }
 };

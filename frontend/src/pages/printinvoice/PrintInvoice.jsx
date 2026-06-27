@@ -1152,7 +1152,7 @@ export default function PrintInvoice() {
         {activeTab === "Item Details" && (
           <div
             key="item"
-            className="flex flex-col gap-6 overflow-x-auto overflow-y-auto max-h-[70vh]"
+            className="flex flex-col gap-6 overflow-x-auto overflow-y-auto min-h-[55vh] max-h-[70vh]"
           >
             <table className="w-full text-sm min-w-[900px]">
               <thead>
@@ -1364,7 +1364,7 @@ export default function PrintInvoice() {
               </tbody>
             </table>
 
-            <div className="flex justify-center gap-3">
+            <div className="flex justify-center gap-3 mt-auto pt-4">
               <button
                 type="reset"
                 onClick={handleReset}
