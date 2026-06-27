@@ -15,7 +15,7 @@ backend/node_modules/
 /build
 
 #logging
-/logs
+backend/logs/
 
 # misc
 .DS_Store
