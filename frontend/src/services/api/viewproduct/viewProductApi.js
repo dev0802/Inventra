@@ -5,6 +5,7 @@ export const updateProductDetails = async(updateData) => {
         headers: {
             "Content-Type": "application/json",
         },
+        credentials:"include",
         body: JSON.stringify(updateData),
     })
 
@@ -17,6 +18,7 @@ export const filterProducts = async(filters) => {
         headers: {
             "Content-Type": "application/json",
         },
+        credentials:"include",
         body: JSON.stringify(filters),
     })
     return response.json();
@@ -28,6 +30,7 @@ export const getAllProducts = async() => {
         headers: {
             "Content-Type": "application/json",
         },
+        credentials:"include"
     })
     return response.json();
 }

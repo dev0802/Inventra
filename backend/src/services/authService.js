@@ -2,6 +2,7 @@
 const {Pool} = require('../config/database');
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
+
 // Function to handle user sign-up
 exports.signUp = async (name, phoneNumber, userPassword) => {
   const existUser = await Pool.query('SELECT * FROM admin WHERE phone_number = $1', [phoneNumber]);
@@ -21,6 +22,7 @@ exports.signUp = async (name, phoneNumber, userPassword) => {
     user: result.rows[0],
   };
 };
+
 // Function to handle user log-in
 exports.logIn = async (phoneNumber, userPassword) => {
   const result = await Pool.query(
@@ -45,11 +47,13 @@ exports.logIn = async (phoneNumber, userPassword) => {
   }, 
   process.env.JWT_SECRET, { expiresIn: '7d' }
   );
+  console.log("Token:", token);
   return { message: "Login successfull",
     name: user.name,
     token: token
    };
 };
+
 // Function to handle password reset
 exports.resetPassword = async (phoneNumber, newUserPassword) => {
   

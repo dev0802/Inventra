@@ -5,8 +5,8 @@ const verifyToken = require('../middleware/authMiddleware');
 const router = express.Router();
 
 
-router.post('/add-product', addProductController.addProduct);
-router.post('/add-item-description', addProductController.addItemDescription)
-router.get('/get-item-descriptions', addProductController.getItemDescriptions);
-router.delete('/delete-item-description', addProductController.deleteItemDescription);
+router.post('/add-product', verifyToken, addProductController.addProduct);
+router.post('/add-item-description', verifyToken, addProductController.addItemDescription)
+router.get('/get-item-descriptions', verifyToken, addProductController.getItemDescriptions);
+router.delete('/delete-item-description', verifyToken, addProductController.deleteItemDescription);
 module.exports = router;

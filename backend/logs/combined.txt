@@ -1,0 +1,130 @@
+[19-06-2026 - 15:53:39] : INFO : User Logging-In attempt | Phone: 7599990150
+[19-06-2026 - 15:53:39] : ERROR : Login failed | Invalid Password | Phone: 7599990150
+[19-06-2026 - 15:53:57] : INFO : User Logging-In attempt | Phone: 1515151515
+[19-06-2026 - 15:53:57] : INFO : User Logged-In successfully | Phone: 1515151515
+[19-06-2026 - 15:53:58] : INFO : Fetching all Item Descriptions
+[19-06-2026 - 15:53:58] : INFO : Fetched 13 Item Descriptions
+[19-06-2026 - 15:53:58] : INFO : Fetching all Item Descriptions
+[19-06-2026 - 15:53:58] : INFO : Fetched 13 Item Descriptions
+[19-06-2026 - 15:54:03] : INFO : Fetching all Item Descriptions
+[19-06-2026 - 15:54:03] : INFO : Fetched 13 Item Descriptions
+[19-06-2026 - 15:54:03] : INFO : Fetching all Item Descriptions
+[19-06-2026 - 15:54:03] : INFO : Fetched 13 Item Descriptions
+[19-06-2026 - 15:54:20] : INFO : Add Product attempt | User Id: 2 & User: Dev Sehgal  | Description: DIAMOND BRACELET (18kt)
+[19-06-2026 - 15:54:20] : INFO : Product added successfully | User Id: 2 & User: Dev Sehgal  | Item Code: 25
+[19-06-2026 - 15:54:59] : INFO : User Logging-In attempt | Phone: 7599990150
+[19-06-2026 - 15:54:59] : ERROR : Login failed | Invalid Password | Phone: 7599990150
+[19-06-2026 - 15:55:03] : INFO : User Logging-In attempt | Phone: 7599990150
+[19-06-2026 - 15:55:03] : ERROR : Login failed | Invalid Password | Phone: 7599990150
+[19-06-2026 - 15:55:05] : INFO : User Logging-In attempt | Phone: 7599990150
+[19-06-2026 - 15:55:05] : INFO : User Logged-In successfully | Phone: 7599990150
+[19-06-2026 - 15:55:05] : INFO : Fetching all Item Descriptions
+[19-06-2026 - 15:55:05] : INFO : Fetched 13 Item Descriptions
+[19-06-2026 - 15:55:05] : INFO : Fetching all Item Descriptions
+[19-06-2026 - 15:55:05] : INFO : Fetched 13 Item Descriptions
+[19-06-2026 - 15:55:13] : INFO : Fetching all Item Descriptions
+[19-06-2026 - 15:55:13] : INFO : Fetched 13 Item Descriptions
+[19-06-2026 - 15:55:13] : INFO : Fetching all Item Descriptions
+[19-06-2026 - 15:55:13] : INFO : Fetched 13 Item Descriptions
+[19-06-2026 - 15:55:16] : INFO : Filter Products attempt | User Id: 1 & User: Dev Sehgal | Filters: {"startDate":"2026-06-19","endDate":"2026-06-19","itemDescription":"","itemCode":"","viewBy":"All"}
+[19-06-2026 - 15:55:16] : INFO : Filter Products attempt | User Id: 1 & User: Dev Sehgal | Filters: {"startDate":"2026-06-19","endDate":"2026-06-19","itemDescription":"","itemCode":"","viewBy":"All"}
+[19-06-2026 - 15:55:16] : INFO : Products filtered successfully
+[19-06-2026 - 15:55:16] : INFO : Products filtered successfully
+[19-06-2026 - 15:55:16] : INFO : Get All Products attempt
+[19-06-2026 - 15:55:16] : INFO : All Products fetched successfully | User Id: 1 & User: Dev Sehgal | Count: undefined
+[19-06-2026 - 15:55:16] : INFO : Get All Products attempt
+[19-06-2026 - 15:55:16] : INFO : All Products fetched successfully | User Id: 1 & User: Dev Sehgal | Count: undefined
+[19-06-2026 - 15:56:37] : INFO : Filter Products attempt | User Id: 1 & User: Dev Sehgal | Filters: {"startDate":"2026-06-19","endDate":"2026-06-19","itemDescription":"","itemCode":"","viewBy":"All"}
+[19-06-2026 - 15:56:37] : INFO : Filter Products attempt | User Id: 1 & User: Dev Sehgal | Filters: {"startDate":"2026-06-19","endDate":"2026-06-19","itemDescription":"","itemCode":"","viewBy":"All"}
+[19-06-2026 - 15:56:37] : INFO : Products filtered successfully
+[19-06-2026 - 15:56:37] : INFO : Products filtered successfully
+[19-06-2026 - 15:56:37] : INFO : Get All Products attempt
+[19-06-2026 - 15:56:37] : INFO : All Products fetched successfully | User Id: 1 & User: Dev Sehgal | Count: undefined
+[19-06-2026 - 15:56:37] : INFO : Get All Products attempt
+[19-06-2026 - 15:56:37] : INFO : All Products fetched successfully | User Id: 1 & User: Dev Sehgal | Count: undefined
+[19-06-2026 - 15:57:13] : INFO : Fetching all Item Descriptions
+[19-06-2026 - 15:57:13] : INFO : Fetched 13 Item Descriptions
+[19-06-2026 - 15:57:13] : INFO : Fetching all Item Descriptions
+[19-06-2026 - 15:57:13] : INFO : Fetched 13 Item Descriptions
+[19-06-2026 - 15:57:13] : INFO : Filter Products attempt | User Id: 1 & User: Dev Sehgal | Filters: {"startDate":"2026-06-19","endDate":"2026-06-19","itemDescription":"","itemCode":"","viewBy":"All"}
+[19-06-2026 - 15:57:13] : INFO : Filter Products attempt | User Id: 1 & User: Dev Sehgal | Filters: {"startDate":"2026-06-19","endDate":"2026-06-19","itemDescription":"","itemCode":"","viewBy":"All"}
+[19-06-2026 - 15:57:13] : INFO : Products filtered successfully
+[19-06-2026 - 15:57:13] : INFO : Get All Products attempt
+[19-06-2026 - 15:57:13] : INFO : All Products fetched successfully | User Id: 1 & User: Dev Sehgal | Count: undefined
+[19-06-2026 - 15:57:13] : INFO : Products filtered successfully
+[19-06-2026 - 15:57:13] : INFO : Get All Products attempt
+[19-06-2026 - 15:57:13] : INFO : All Products fetched successfully | User Id: 1 & User: Dev Sehgal | Count: undefined
+[19-06-2026 - 15:58:03] : INFO : User Logging-In attempt | Phone: 1515151515
+[19-06-2026 - 15:58:03] : INFO : User Logged-In successfully | Phone: 1515151515
+[19-06-2026 - 15:58:03] : INFO : Fetching all Item Descriptions
+[19-06-2026 - 15:58:03] : INFO : Fetched 13 Item Descriptions
+[19-06-2026 - 15:58:03] : INFO : Fetching all Item Descriptions
+[19-06-2026 - 15:58:03] : INFO : Fetched 13 Item Descriptions
+[19-06-2026 - 15:58:51] : INFO : Filter Products attempt | User Id: 2 & User: Dev Sehgal | Filters: {"startDate":"2026-06-19","endDate":"2026-06-19","itemDescription":"","itemCode":"","viewBy":"All"}
+[19-06-2026 - 15:58:51] : INFO : Filter Products attempt | User Id: 2 & User: Dev Sehgal | Filters: {"startDate":"2026-06-19","endDate":"2026-06-19","itemDescription":"","itemCode":"","viewBy":"All"}
+[19-06-2026 - 15:58:51] : INFO : Products filtered successfully
+[19-06-2026 - 15:58:51] : INFO : Products filtered successfully
+[19-06-2026 - 15:58:51] : INFO : Get All Products attempt
+[19-06-2026 - 15:58:51] : INFO : All Products fetched successfully | User Id: 2 & User: Dev Sehgal | Count: undefined
+[19-06-2026 - 15:58:51] : INFO : Get All Products attempt
+[19-06-2026 - 15:58:51] : INFO : All Products fetched successfully | User Id: 2 & User: Dev Sehgal | Count: undefined
+[19-06-2026 - 15:59:04] : INFO : Fetching all Item Descriptions
+[19-06-2026 - 15:59:05] : INFO : Fetched 13 Item Descriptions
+[19-06-2026 - 15:59:05] : INFO : Fetching all Item Descriptions
+[19-06-2026 - 15:59:05] : INFO : Fetched 13 Item Descriptions
+[19-06-2026 - 15:59:05] : INFO : Filter Products attempt | User Id: 1 & User: Dev Sehgal | Filters: {"startDate":"2026-06-19","endDate":"2026-06-19","itemDescription":"","itemCode":"","viewBy":"All"}
+[19-06-2026 - 15:59:05] : INFO : Filter Products attempt | User Id: 1 & User: Dev Sehgal | Filters: {"startDate":"2026-06-19","endDate":"2026-06-19","itemDescription":"","itemCode":"","viewBy":"All"}
+[19-06-2026 - 15:59:05] : INFO : Products filtered successfully
+[19-06-2026 - 15:59:05] : INFO : Get All Products attempt
+[19-06-2026 - 15:59:05] : INFO : All Products fetched successfully | User Id: 1 & User: Dev Sehgal | Count: undefined
+[19-06-2026 - 15:59:05] : INFO : Products filtered successfully
+[19-06-2026 - 15:59:05] : INFO : Get All Products attempt
+[19-06-2026 - 15:59:05] : INFO : All Products fetched successfully | User Id: 1 & User: Dev Sehgal | Count: undefined
+[19-06-2026 - 15:59:29] : INFO : Fetching all Item Descriptions
+[19-06-2026 - 15:59:29] : INFO : Fetched 13 Item Descriptions
+[19-06-2026 - 15:59:29] : INFO : Fetching all Item Descriptions
+[19-06-2026 - 15:59:29] : INFO : Fetched 13 Item Descriptions
+[19-06-2026 - 15:59:35] : INFO : Filter Products attempt | User Id: 2 & User: Dev Sehgal | Filters: {"startDate":"2026-06-19","endDate":"2026-06-19","itemDescription":"","itemCode":"","viewBy":"All"}
+[19-06-2026 - 15:59:35] : INFO : Products filtered successfully
+[19-06-2026 - 15:59:35] : INFO : Filter Products attempt | User Id: 2 & User: Dev Sehgal | Filters: {"startDate":"2026-06-19","endDate":"2026-06-19","itemDescription":"","itemCode":"","viewBy":"All"}
+[19-06-2026 - 15:59:35] : INFO : Products filtered successfully
+[19-06-2026 - 15:59:35] : INFO : Get All Products attempt
+[19-06-2026 - 15:59:35] : INFO : All Products fetched successfully | User Id: 2 & User: Dev Sehgal | Count: undefined
+[19-06-2026 - 15:59:35] : INFO : Get All Products attempt
+[19-06-2026 - 15:59:35] : INFO : All Products fetched successfully | User Id: 2 & User: Dev Sehgal | Count: undefined
+[19-06-2026 - 16:43:23] : INFO : Fetching all Item Descriptions
+[19-06-2026 - 16:43:23] : INFO : Fetched 13 Item Descriptions
+[19-06-2026 - 16:43:23] : INFO : Fetching all Item Descriptions
+[19-06-2026 - 16:43:23] : INFO : Fetched 13 Item Descriptions
+[19-06-2026 - 17:09:44] : INFO : Fetching all Item Descriptions
+[19-06-2026 - 17:09:44] : INFO : Fetched 13 Item Descriptions
+[19-06-2026 - 17:09:44] : INFO : Fetching all Item Descriptions
+[19-06-2026 - 17:09:44] : INFO : Fetched 13 Item Descriptions
+[19-06-2026 - 17:09:47] : INFO : Filter Products attempt | User Id: 1 & User: Dev Sehgal | Filters: {"startDate":"2026-06-19","endDate":"2026-06-19","itemDescription":"","itemCode":"","viewBy":"All"}
+[19-06-2026 - 17:09:47] : INFO : Filter Products attempt | User Id: 1 & User: Dev Sehgal | Filters: {"startDate":"2026-06-19","endDate":"2026-06-19","itemDescription":"","itemCode":"","viewBy":"All"}
+[19-06-2026 - 17:09:47] : INFO : Products filtered successfully
+[19-06-2026 - 17:09:47] : INFO : Get All Products attempt
+[19-06-2026 - 17:09:47] : INFO : All Products fetched successfully | User Id: 1 & User: Dev Sehgal | Count: undefined
+[19-06-2026 - 17:09:47] : INFO : Products filtered successfully
+[19-06-2026 - 17:09:47] : INFO : Get All Products attempt
+[19-06-2026 - 17:09:47] : INFO : All Products fetched successfully | User Id: 1 & User: Dev Sehgal | Count: undefined
+[19-06-2026 - 17:09:47] : INFO : Fetching all Item Descriptions
+[19-06-2026 - 17:09:47] : INFO : Fetched 13 Item Descriptions
+[19-06-2026 - 17:09:47] : INFO : Fetching all Item Descriptions
+[19-06-2026 - 17:09:47] : INFO : Fetched 13 Item Descriptions
+[19-06-2026 - 17:14:43] : INFO : Add Product attempt | User Id: 1 & User: Dev Sehgal  | Description: GOLD CHAIN (999)
+[19-06-2026 - 17:14:43] : INFO : Product added successfully | User Id: 1 & User: Dev Sehgal  | Item Code: 26
+[19-06-2026 - 17:14:45] : INFO : Add Product attempt | User Id: 2 & User: Dev Sehgal  | Description: DIAMOND RING (14kt)
+[19-06-2026 - 17:14:45] : INFO : Product added successfully | User Id: 2 & User: Dev Sehgal  | Item Code: 27
+[19-06-2026 - 17:14:55] : INFO : Filter Products attempt | User Id: 2 & User: Dev Sehgal | Filters: {"startDate":"2026-06-19","endDate":"2026-06-19","itemDescription":"","itemCode":"","viewBy":"All"}
+[19-06-2026 - 17:14:55] : INFO : Filter Products attempt | User Id: 2 & User: Dev Sehgal | Filters: {"startDate":"2026-06-19","endDate":"2026-06-19","itemDescription":"","itemCode":"","viewBy":"All"}
+[19-06-2026 - 17:14:55] : INFO : Products filtered successfully
+[19-06-2026 - 17:14:55] : INFO : Products filtered successfully
+[19-06-2026 - 17:14:55] : INFO : Get All Products attempt
+[19-06-2026 - 17:14:55] : INFO : All Products fetched successfully | User Id: 2 & User: Dev Sehgal | Count: undefined
+[19-06-2026 - 17:14:55] : INFO : Get All Products attempt
+[19-06-2026 - 17:14:55] : INFO : All Products fetched successfully | User Id: 2 & User: Dev Sehgal | Count: undefined
+[19-06-2026 - 17:14:57] : INFO : Fetching all Item Descriptions
+[19-06-2026 - 17:14:57] : INFO : Fetched 13 Item Descriptions
+[19-06-2026 - 17:14:57] : INFO : Fetching all Item Descriptions
+[19-06-2026 - 17:14:57] : INFO : Fetched 13 Item Descriptions

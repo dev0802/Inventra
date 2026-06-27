@@ -1,61 +1,180 @@
 // Controller for adding a new product to the database
-const addProductService = require('../services/addProductService');
+const logger = require("../utilis/loggerFile");
+const addProductService = require("../services/addProductService");
 
 exports.addProduct = async (req, res) => {
-    const { itemCode, itemDescription, grossWeight, stoneWeight, motiWeight, diamondWeight, solitaireWeight, colorStone, minnaWeight, colouring, netWeight, saleDate, hsnCode, isSold, isDeleted } = req.body;
-    try{
-        const product = await addProductService.addProduct(itemCode, itemDescription, grossWeight, stoneWeight, motiWeight, diamondWeight, solitaireWeight, colorStone, minnaWeight, colouring, netWeight, saleDate, hsnCode, isSold, isDeleted);
-        if(product.message === "Product added successfully"){
-            return res.status(201).json(product);
-        }
-    } catch (error) {
-        console.error(error);
-        return res.status(500).json({ error: 'Internal Server Error' });
+  const {
+    itemCode,
+    itemDescription,
+    grossWeight,
+    stoneWeight,
+    motiWeight,
+    diamondWeight,
+    solitaireWeight,
+    colorStone,
+    minnaWeight,
+    colouring,
+    netWeight,
+    saleDate,
+    hsnCode,
+    isSold,
+    isDeleted,
+  } = req.body;
+  logger.info(`Add Product attempt | User Id: ${req.user.userId} & User: ${req.user.userName}  | Description: ${itemDescription}`);
+  try {
+    const product = await addProductService.addProduct(
+      itemCode,
+      itemDescription,
+      grossWeight,
+      stoneWeight,
+      motiWeight,
+      diamondWeight,
+      solitaireWeight,
+      colorStone,
+      minnaWeight,
+      colouring,
+      netWeight,
+      saleDate,
+      hsnCode,
+      isSold,
+      isDeleted,
+    );
+    if (product.message === "Product added successfully") {
+      console.log(product);
+      logger.info(
+        `Product added successfully | User Id: ${req.user.userId} & User: ${req.user.userName}  | Item Code: ${product.product.item_code}`,
+      );
+      return res.status(201).json(product);
     }
-}
+  } catch (error) {
+    logger.error(`Add Product error | User Id: ${req.user.userId} & User: ${req.user.userName}  | ${error.message}`);
+    return res.status(500).json({ error: "Internal Server Error" });
+  }
+};
 
 exports.addItemDescription = async (req, res) => {
-    const { itemDescription } = req.body;
-    console.log("Received:", itemDescription);
-    try {
-        const result = await addProductService.itemDescriptions(itemDescription);
-        if (result) {
-            return res.status(201).json({
-                message: "Item description added successfully",
-                itemDescription: result.item_description
-            });
-        } else {
-            return res.status(400).json({ error: 'Failed to add item description' });
-        }
-    } catch (error) {
-        console.error("DB Error:", error.message);
-        return res.status(500).json({ error: 'Internal Server Error' });
+  const { itemDescription } = req.body;
+  logger.info(`Add Item Description attempt | User Id: ${req.user.userId} & User: ${req.user.userName}  | Description: ${itemDescription}`);
+  try {
+    const result = await addProductService.itemDescriptions(itemDescription);
+    if (result) {
+      logger.info(
+        `Item Description added successfully | User Id: ${req.user.userId} & User: ${req.user.userName}  | Description: ${itemDescription}`,
+      );
+      return res.status(201).json({
+        message: "Item description added successfully",
+        itemDescription: result.item_description,
+      });
+    } else {
+      logger.error(
+        `Failed to add Item Description | User Id: ${req.user.userId} & User: ${req.user.userName}  | Description: ${itemDescription}`,
+      );
+      return res.status(400).json({ error: "Failed to add item description" });
     }
-}
+  } catch (error) {
+    logger.error(`Add Item Description error | User Id: ${req.user.userId} & User: ${req.user.userName}  | ${error.message}`);
+    return res.status(500).json({ error: "Internal Server Error" });
+  }
+};
 
 exports.getItemDescriptions = async (req, res) => {
-    try {
-        const result = await addProductService.getItemDescriptions();
-        return res.status(200).json({
-            itemDescriptions: result.map(r => r.item_description)
-        });
-    } catch (error) {
-        console.error(error);
-        return res.status(500).json({ error: 'Internal Server Error' });
-    }
-}
+  logger.info(`Fetching all Item Descriptions`);
+  try {
+    const result = await addProductService.getItemDescriptions();
+    logger.info(`Fetched ${result.length} Item Descriptions`);
+    return res.status(200).json({
+      itemDescriptions: result.map((r) => r.item_description),
+    });
+  } catch (error) {
+    logger.error(`Get Item Descriptions error | ${error.message}`);
+    return res.status(500).json({ error: "Internal Server Error" });
+  }
+};
 
 exports.deleteItemDescription = async (req, res) => {
-    const { itemDescription } = req.body;
-    try {
-        const result = await addProductService.deleteItemDescription(itemDescription);
-        if (result) {
-            return res.status(200).json({ message: "Item description deleted successfully" });
-        } else {
-            return res.status(404).json({ error: 'Item description not found' });
-        }
-    } catch (error) {
-        console.error(error);
-        return res.status(500).json({ error: 'Internal Server Error' });
+  const { itemDescription } = req.body;
+  logger.info(
+    `Delete Item Description attempt | User Id: ${req.user.userId} & User: ${req.user.userName}  | Description: ${itemDescription}`,
+  );
+  try {
+    const result =
+      await addProductService.deleteItemDescription(itemDescription);
+    if (result) {
+      logger.info(
+        `Item Description deleted successfully | User Id: ${req.user.userId} & User: ${req.user.userName}  | Description: ${itemDescription}`,
+      );
+      return res
+        .status(200)
+        .json({ message: "Item description deleted successfully" });
+    } else {
+      logger.error(
+        `Item Description not found | User Id: ${req.user.userId} & User: ${req.user.userName}  | Description: ${itemDescription}`,
+      );
+      return res.status(404).json({ error: "Item description not found" });
     }
-}
+  } catch (error) {
+    logger.error(`Delete Item Description  | User Id: ${req.user.userId} & User: ${req.user.userName}  | ${error.message}`);
+    return res.status(500).json({ error: "Internal Server Error" });
+  }
+};
+// // Controller for adding a new product to the database
+// const addProductService = require('../services/addProductService');
+
+// exports.addProduct = async (req, res) => {
+//     const { itemCode, itemDescription, grossWeight, stoneWeight, motiWeight, diamondWeight, solitaireWeight, colorStone, minnaWeight, colouring, netWeight, saleDate, hsnCode, isSold, isDeleted } = req.body;
+//     try{
+//         const product = await addProductService.addProduct(itemCode, itemDescription, grossWeight, stoneWeight, motiWeight, diamondWeight, solitaireWeight, colorStone, minnaWeight, colouring, netWeight, saleDate, hsnCode, isSold, isDeleted);
+//         if(product.message === "Product added successfully"){
+//             return res.status(201).json(product);
+//         }
+//     } catch (error) {
+//         console.error(error);
+//         return res.status(500).json({ error: 'Internal Server Error' });
+//     }
+// }
+
+// exports.addItemDescription = async (req, res) => {
+//     const { itemDescription } = req.body;
+//     console.log("Received:", itemDescription);
+//     try {
+//         const result = await addProductService.itemDescriptions(itemDescription);
+//         if (result) {
+//             return res.status(201).json({
+//                 message: "Item description added successfully",
+//                 itemDescription: result.item_description
+//             });
+//         } else {
+//             return res.status(400).json({ error: 'Failed to add item description' });
+//         }
+//     } catch (error) {
+//         console.error("DB Error:", error.message);
+//         return res.status(500).json({ error: 'Internal Server Error' });
+//     }
+// }
+
+// exports.getItemDescriptions = async (req, res) => {
+//     try {
+//         const result = await addProductService.getItemDescriptions();
+//         return res.status(200).json({
+//             itemDescriptions: result.map(r => r.item_description)
+//         });
+//     } catch (error) {
+//         console.error(error);
+//         return res.status(500).json({ error: 'Internal Server Error' });
+//     }
+// }
+
+// exports.deleteItemDescription = async (req, res) => {
+//     const { itemDescription } = req.body;
+//     try {
+//         const result = await addProductService.deleteItemDescription(itemDescription);
+//         if (result) {
+//             return res.status(200).json({ message: "Item description deleted successfully" });
+//         } else {
+//             return res.status(404).json({ error: 'Item description not found' });
+//         }
+//     } catch (error) {
+//         console.error(error);
+//         return res.status(500).json({ error: 'Internal Server Error' });
+//     }
+// }
